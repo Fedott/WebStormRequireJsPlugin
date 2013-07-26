@@ -67,27 +67,28 @@ public class RequirejsReference implements PsiReference {
     @NotNull
     @Override
     public Object[] getVariants() {
-        String value = element.getText().replace("'", "").replace("\"", "").replace("IntellijIdeaRulezzz ", "");
-        Boolean tpl = value.startsWith("tpl!");
-        String valuePath = value.replaceFirst("tpl!", "");
-
-        ArrayList<String> allFiles = getAllFilesInDirectory(webDir);
-        ArrayList<String> trueFiles = new ArrayList<String>();
-
-        String file;
-
-        for (int i = 0; i < allFiles.size(); i++) {
-            file = allFiles.get(i);
-            if (file.startsWith(valuePath)) {
-                if (tpl && file.endsWith(".html")) {
-                    trueFiles.add("tpl!" + file);
-                } else if (file.endsWith(".js")) {
-                    trueFiles.add(file.replace(".js", ""));
-                }
-            }
-        }
-
-        return trueFiles.toArray();
+//        String value = element.getText().replace("'", "").replace("\"", "").replace("IntellijIdeaRulezzz ", "");
+//        Boolean tpl = value.startsWith("tpl!");
+//        String valuePath = value.replaceFirst("tpl!", "");
+//
+//        ArrayList<String> allFiles = getAllFilesInDirectory(webDir);
+//        ArrayList<String> trueFiles = new ArrayList<String>();
+//
+//        String file;
+//
+//        for (int i = 0; i < allFiles.size(); i++) {
+//            file = allFiles.get(i);
+//            if (file.startsWith(valuePath)) {
+//                if (tpl && file.endsWith(".html")) {
+//                    trueFiles.add("tpl!" + file);
+//                } else if (file.endsWith(".js")) {
+//                    trueFiles.add(file.replace(".js", ""));
+//                }
+//            }
+//        }
+//
+//        return trueFiles.toArray();
+        return new Object[0];
     }
 
     protected ArrayList<String> getAllFilesInDirectory(VirtualFile directory) {

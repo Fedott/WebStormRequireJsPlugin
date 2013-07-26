@@ -1,7 +1,7 @@
 <idea-plugin version="2">
   <id>ru.crystals.idea.requirejs</id>
   <name>Require autocomplete file plugin</name>
-  <version>0.1</version>
+  <version>0.2</version>
   <vendor email="support@yourcompany.com" url="http://www.yourcompany.com">YourCompany</vendor>
 
   <depends>com.intellij.modules.platform</depends>
@@ -40,7 +40,7 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <psi.referenceContributor implementation="requirejs.RequirejsPsiReferenceContributor" />
-    <!--<completion.contributor language="JavaScript" implementationClass="requirejs.RequirejsCompletionContributor" />-->
+    <completion.contributor language="JavaScript" implementationClass="requirejs.RequirejsCompletionContributor" />
     <projectConfigurable implementation="requirejs.properties.RequirejsSettingsPage" />
   </extensions>
 </idea-plugin>

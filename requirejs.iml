@@ -8,6 +8,8 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" scope="PROVIDED" name="javascript-openapi" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="JavaScriptLanguage" level="project" />
   </component>
 </module>
 

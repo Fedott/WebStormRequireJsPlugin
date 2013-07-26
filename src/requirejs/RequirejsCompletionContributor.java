@@ -4,23 +4,30 @@ import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.lang.Language;
+import com.intellij.lang.javascript.JavascriptLanguage;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.impl.VirtualDirectoryImpl;
 import com.intellij.openapi.vfs.newvfs.impl.VirtualFileImpl;
 import com.intellij.patterns.PlatformPatterns;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.tree.IElementType;
 import com.intellij.util.ProcessingContext;
 import org.jetbrains.annotations.NotNull;
+import sun.plugin.liveconnect.JavaScriptProtectionDomain;
 
 import java.util.ArrayList;
 
 public class RequirejsCompletionContributor extends CompletionContributor {
-    VirtualFile webDir;
+    public VirtualFile webDir;
+
     public RequirejsCompletionContributor() {
 
         extend(CompletionType.BASIC,
-                PlatformPatterns.psiFile().withLanguage(Language.findLanguageByID("JavaScript")),
+                PlatformPatterns
+                        .psiElement()
+                        .withLanguage(JavascriptLanguage.INSTANCE),
                 new CompletionProvider<CompletionParameters>() {
                     @Override
                     public void addCompletions(@NotNull CompletionParameters completionParameters,
@@ -30,17 +37,23 @@ public class RequirejsCompletionContributor extends CompletionContributor {
                         if (webDir == null) {
                             PropertiesComponent properties = PropertiesComponent.getInstance();
                             String webDirPrefString = properties.getValue("web_dir", "webfront/web");
-                            VirtualFile webDir = completionParameters
+                            webDir = completionParameters
                                     .getOriginalFile()
                                     .getProject()
                                     .getBaseDir()
                                     .findFileByRelativePath(webDirPrefString);
                         }
 
-                        ArrayList<String> files = getAllFilesInDirectory(webDir);
+                        ArrayList<String> files = filterFiles(completionParameters.getPosition());
 
                         for (int i = 0; i < files.size(); i++) {
-                            completionResultSet.addElement(LookupElementBuilder.create(files.get(i)));
+                            completionResultSet.addElement(
+                                    new RequirejsLookupElement(
+                                            files.get(i),
+                                            RequirejsInsertHandler.getInstance(),
+                                            completionParameters.getPosition()
+                                    )
+                            );
                         }
                     }
                 });
@@ -53,7 +66,7 @@ public class RequirejsCompletionContributor extends CompletionContributor {
         if (childrens.length != 0) {
             for (int i = 0; i < childrens.length; i++) {
                 if (childrens[i] instanceof VirtualDirectoryImpl) {
-                    files.addAll(getAllFilesInDirectory((VirtualDirectoryImpl) childrens[i]));
+                    files.addAll(getAllFilesInDirectory(childrens[i]));
                 } else if (childrens[i] instanceof VirtualFileImpl) {
                     files.add(childrens[i].getPath().replace(webDir.getPath() + "/", ""));
                 }
@@ -61,5 +74,29 @@ public class RequirejsCompletionContributor extends CompletionContributor {
         }
 
         return files;
+    }
+
+    protected ArrayList<String> filterFiles (PsiElement element) {
+        String value = element.getText().replace("'", "").replace("\"", "").replace("IntellijIdeaRulezzz ", "");
+        Boolean tpl = value.startsWith("tpl!");
+        String valuePath = value.replaceFirst("tpl!", "");
+
+        ArrayList<String> allFiles = getAllFilesInDirectory(webDir);
+        ArrayList<String> trueFiles = new ArrayList<String>();
+
+        String file;
+
+        for (int i = 0; i < allFiles.size(); i++) {
+            file = allFiles.get(i);
+            if (file.startsWith(valuePath)) {
+                if (tpl && file.endsWith(".html")) {
+                    trueFiles.add("tpl!" + file);
+                } else if (file.endsWith(".js")) {
+                    trueFiles.add(file.replace(".js", ""));
+                }
+            }
+        }
+
+        return trueFiles;
     }
 }

@@ -7,7 +7,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class RequirejsType extends IElementType {
-    public static final RequirejsType DEFAULT_NAME = new RequirejsType("HEADER_NAME_TOKEN");
+    public static final RequirejsType DEFAULT_NAME = new RequirejsType("REQUIRE_NAME_TOKEN");
 
     public RequirejsType(@NotNull @NonNls String debugName) {
         super(debugName, Language.ANY);
