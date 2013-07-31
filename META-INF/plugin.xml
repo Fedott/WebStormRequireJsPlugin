@@ -1,8 +1,8 @@
 <idea-plugin version="2">
   <id>ru.crystals.idea.requirejs</id>
   <name>Require autocomplete file plugin</name>
-  <version>0.2</version>
-  <vendor email="support@yourcompany.com" url="http://www.yourcompany.com">YourCompany</vendor>
+  <version>0.3</version>
+  <vendor email="vfedorov@crystals.ru" url="http://crystals.ru">Crystal Services</vendor>
 
   <depends>com.intellij.modules.platform</depends>
 
@@ -18,7 +18,7 @@
   </change-notes>
 
   <!-- please see http://confluence.jetbrains.net/display/IDEADEV/Build+Number+Ranges for description -->
-  <idea-version since-build="107.105"/>
+  <idea-version since-build="127"/>
 
   <!-- please see http://confluence.jetbrains.net/display/IDEADEV/Plugin+Compatibility+with+IntelliJ+Platform+Products
        on how to target different products -->
@@ -40,7 +40,7 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <psi.referenceContributor implementation="requirejs.RequirejsPsiReferenceContributor" />
-    <completion.contributor language="JavaScript" implementationClass="requirejs.RequirejsCompletionContributor" />
+    <!--<completion.contributor language="Javascript" implementationClass="requirejs.RequirejsCompletionContributor" />-->
     <projectConfigurable implementation="requirejs.properties.RequirejsSettingsPage" />
   </extensions>
 </idea-plugin>

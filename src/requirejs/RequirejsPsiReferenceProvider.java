@@ -10,8 +10,6 @@ import com.intellij.psi.PsiReferenceProvider;
 import com.intellij.util.ProcessingContext;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.Method;
-
 public class RequirejsPsiReferenceProvider extends PsiReferenceProvider {
     @NotNull
     @Override

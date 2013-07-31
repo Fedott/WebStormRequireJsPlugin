@@ -3,10 +3,8 @@ package requirejs;
 import com.intellij.codeInsight.completion.InsertHandler;
 import com.intellij.codeInsight.completion.InsertionContext;
 import com.intellij.codeInsight.lookup.LookupElement;
-import com.intellij.lang.javascript.completion.JavaScriptCompletionData;
-import icons.JavaScriptLanguageIcons;
 
-public class RequirejsInsertHandler extends JavaScriptCompletionData.JSInsertHandler {
+public class RequirejsInsertHandler implements InsertHandler {
     private static final RequirejsInsertHandler instance = new RequirejsInsertHandler();
 
     @Override

@@ -1,16 +1,14 @@
 package requirejs;
 
-import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.impl.VirtualDirectoryImpl;
 import com.intellij.openapi.vfs.newvfs.impl.VirtualFileImpl;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiReference;
-import com.intellij.psi.search.PsiNonJavaFileReferenceProcessor;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -45,6 +43,17 @@ public class RequirejsReference implements PsiReference {
         } else {
             path = path.concat(".js");
         }
+        if (path.startsWith("./")) {
+            path = path.replaceFirst(
+                    ".",
+                    element
+                            .getContainingFile()
+                            .getVirtualFile()
+                            .getParent()
+                            .getPath()
+                            .replace(webDir.getPath(), "")
+            );
+        }
         VirtualFile targetFile = webDir.findFileByRelativePath(path);
 
         if (targetFile != null) {
@@ -67,28 +76,21 @@ public class RequirejsReference implements PsiReference {
     @NotNull
     @Override
     public Object[] getVariants() {
-//        String value = element.getText().replace("'", "").replace("\"", "").replace("IntellijIdeaRulezzz ", "");
-//        Boolean tpl = value.startsWith("tpl!");
-//        String valuePath = value.replaceFirst("tpl!", "");
-//
-//        ArrayList<String> allFiles = getAllFilesInDirectory(webDir);
-//        ArrayList<String> trueFiles = new ArrayList<String>();
-//
-//        String file;
-//
-//        for (int i = 0; i < allFiles.size(); i++) {
-//            file = allFiles.get(i);
-//            if (file.startsWith(valuePath)) {
-//                if (tpl && file.endsWith(".html")) {
-//                    trueFiles.add("tpl!" + file);
-//                } else if (file.endsWith(".js")) {
-//                    trueFiles.add(file.replace(".js", ""));
-//                }
-//            }
-//        }
-//
-//        return trueFiles.toArray();
-        return new Object[0];
+        ArrayList<String> files = filterFiles(this.element);
+
+        ArrayList<LookupElement> completionResultSet = new ArrayList<LookupElement>();
+
+        for (int i = 0; i < files.size(); i++) {
+            completionResultSet.add(
+                    new RequirejsLookupElement(
+                            files.get(i),
+                            RequirejsInsertHandler.getInstance(),
+                            this.element
+                    )
+            );
+        }
+
+        return completionResultSet.toArray();
     }
 
     protected ArrayList<String> getAllFilesInDirectory(VirtualFile directory) {
@@ -106,6 +108,30 @@ public class RequirejsReference implements PsiReference {
         }
 
         return files;
+    }
+
+    protected ArrayList<String> filterFiles (PsiElement element) {
+        String value = element.getText().replace("'", "").replace("\"", "").replace("IntellijIdeaRulezzz ", "");
+        Boolean tpl = value.startsWith("tpl!");
+        String valuePath = value.replaceFirst("tpl!", "");
+
+        ArrayList<String> allFiles = getAllFilesInDirectory(webDir);
+        ArrayList<String> trueFiles = new ArrayList<String>();
+
+        String file;
+
+        for (int i = 0; i < allFiles.size(); i++) {
+            file = allFiles.get(i);
+            if (file.startsWith(valuePath)) {
+                if (tpl && file.endsWith(".html")) {
+                    trueFiles.add("tpl!" + file);
+                } else if (file.endsWith(".js")) {
+                    trueFiles.add(file.replace(".js", ""));
+                }
+            }
+        }
+
+        return trueFiles;
     }
 
     @Override
