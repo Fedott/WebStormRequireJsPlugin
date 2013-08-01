@@ -1,5 +1,6 @@
 package requirejs;
 
+import com.intellij.lang.javascript.psi.JSLiteralExpression;
 import com.intellij.patterns.StandardPatterns;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReferenceContributor;
@@ -10,6 +11,6 @@ public class RequirejsPsiReferenceContributor extends PsiReferenceContributor {
     public void registerReferenceProviders(PsiReferenceRegistrar psiReferenceRegistrar) {
         RequirejsPsiReferenceProvider provider = new RequirejsPsiReferenceProvider();
 
-        psiReferenceRegistrar.registerReferenceProvider(StandardPatterns.instanceOf(PsiElement.class), provider);
+        psiReferenceRegistrar.registerReferenceProvider(StandardPatterns.instanceOf(JSLiteralExpression.class), provider);
     }
 }

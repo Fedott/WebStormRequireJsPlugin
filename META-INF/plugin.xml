@@ -5,6 +5,7 @@
   <vendor email="vfedorov@crystals.ru" url="http://crystals.ru">Crystal Services</vendor>
 
   <depends>com.intellij.modules.platform</depends>
+  <depends>JavaScript</depends>
 
     <description><![CDATA[
       Enter short description for your plugin here.<br>
