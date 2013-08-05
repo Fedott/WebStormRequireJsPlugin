@@ -2,9 +2,6 @@ package requirejs;
 
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.lang.javascript.psi.JSCallExpression;
-import com.intellij.lang.javascript.psi.JSLiteralExpression;
-import com.intellij.lang.javascript.psi.impl.JSCallExpressionImpl;
-import com.intellij.lang.javascript.psi.impl.JSLiteralExpressionImpl;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -28,15 +25,13 @@ public class RequirejsPsiReferenceProvider extends PsiReferenceProvider {
             return PsiReference.EMPTY_ARRAY;
         }
 
-        if (psiElement instanceof JSLiteralExpression) {
-            try {
-                String path = psiElement.getText();
-                if (isRequireCall(psiElement)) {
-                    PsiReference ref = new RequirejsReference(psiElement, new TextRange(1, path.length() - 1), project, webDir);
-                    return new PsiReference[] {ref};
-                }
-            } catch (Exception ignored) {}
-        }
+        try {
+            String path = psiElement.getText();
+            if (isRequireCall(psiElement)) {
+                PsiReference ref = new RequirejsReference(psiElement, new TextRange(1, path.length() - 1), project, webDir);
+                return new PsiReference[] {ref};
+            }
+        } catch (Exception ignored) {}
 
         return new PsiReference[0];
     }
