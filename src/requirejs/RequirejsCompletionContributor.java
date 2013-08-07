@@ -10,6 +10,7 @@ import com.intellij.patterns.PlatformPatterns;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.ProcessingContext;
 import org.jetbrains.annotations.NotNull;
+import requirejs.properties.RequirejsSettingsPage;
 
 import java.util.ArrayList;
 
@@ -30,7 +31,7 @@ public class RequirejsCompletionContributor extends CompletionContributor {
                     ) {
                         if (webDir == null) {
                             PropertiesComponent properties = PropertiesComponent.getInstance();
-                            String webDirPrefString = properties.getValue("web_dir", "webfront/web");
+                            String webDirPrefString = properties.getValue(RequirejsSettingsPage.WEB_PATH_PROPERTY_NAME, RequirejsSettingsPage.DEFAULT_WEB_PATH);
                             webDir = completionParameters
                                     .getOriginalFile()
                                     .getProject()

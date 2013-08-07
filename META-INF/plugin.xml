@@ -1,8 +1,8 @@
 <idea-plugin version="2">
   <id>ru.crystals.idea.requirejs</id>
   <name>Require autocomplete file plugin</name>
-  <version>0.3</version>
-  <vendor email="vfedorov@crystals.ru" url="http://crystals.ru">Crystal Services</vendor>
+  <version>0.4</version>
+  <vendor email="fedotru@gmail.com" url="http://guthub.com/Fedott/">Crystal Services</vendor>
 
   <depends>com.intellij.modules.platform</depends>
   <depends>JavaScript</depends>

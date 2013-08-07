@@ -10,15 +10,17 @@ import com.intellij.psi.PsiReference;
 import com.intellij.psi.PsiReferenceProvider;
 import com.intellij.util.ProcessingContext;
 import org.jetbrains.annotations.NotNull;
+import requirejs.properties.RequirejsSettingsPage;
 
 public class RequirejsPsiReferenceProvider extends PsiReferenceProvider {
+
     @NotNull
     @Override
     public PsiReference[] getReferencesByElement(@NotNull PsiElement psiElement, @NotNull ProcessingContext processingContext) {
         Project project = psiElement.getProject();
 
         PropertiesComponent properties = PropertiesComponent.getInstance(project);
-        String webDirPrefString = properties.getValue("web_dir", "webfront/web");
+        String webDirPrefString = properties.getValue(RequirejsSettingsPage.WEB_PATH_PROPERTY_NAME, RequirejsSettingsPage.DEFAULT_WEB_PATH);
         VirtualFile webDir = project.getBaseDir().findFileByRelativePath(webDirPrefString);
 
         if (webDir == null) {
@@ -46,7 +48,10 @@ public class RequirejsPsiReferenceProvider extends PsiReferenceProvider {
             if (prevEl instanceof JSCallExpression) {
                 try {
                     if (prevEl.getChildren().length > 1) {
-                        if (prevEl.getChildren()[0].getText().toLowerCase().equals("require")) {
+                        String requireFunctionName = PropertiesComponent
+                                .getInstance(element.getProject())
+                                .getValue(RequirejsSettingsPage.REQUIREJS_FUNCTION_NAME_PROPERTY_NAME, RequirejsSettingsPage.DEFAULT_REQUIREJS_FUNCTION_NAME);
+                        if (prevEl.getChildren()[0].getText().toLowerCase().equals(requireFunctionName)) {
                             return true;
                         }
                     }
