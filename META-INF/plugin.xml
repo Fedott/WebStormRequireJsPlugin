@@ -1,20 +1,18 @@
 <idea-plugin version="2">
-  <id>ru.crystals.idea.requirejs</id>
+  <id>com.fedot.idea.requirejs</id>
   <name>Require autocomplete file plugin</name>
   <version>0.4</version>
-  <vendor email="fedotru@gmail.com" url="http://guthub.com/Fedott/">Crystal Services</vendor>
+  <vendor email="fedotru@gmail.com" url="http://guthub.com/Fedott/">Vladimir Fedorov</vendor>
 
   <depends>com.intellij.modules.platform</depends>
   <depends>JavaScript</depends>
 
     <description><![CDATA[
-      Enter short description for your plugin here.<br>
-      <small>most HTML tags may be used</small>
+      Require js file path auto-completion plugin
       ]]></description>
 
   <change-notes><![CDATA[
-      Add change notes here.<br>
-      <small>most HTML tags may be used</small>
+      Nothing
       ]]>
   </change-notes>
 
@@ -41,7 +39,6 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <psi.referenceContributor implementation="requirejs.RequirejsPsiReferenceContributor" />
-    <!--<completion.contributor language="Javascript" implementationClass="requirejs.RequirejsCompletionContributor" />-->
     <projectConfigurable implementation="requirejs.properties.RequirejsSettingsPage" />
   </extensions>
 </idea-plugin>
