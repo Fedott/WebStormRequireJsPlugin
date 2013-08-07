@@ -1,6 +1,7 @@
 package requirejs;
 
 import com.intellij.codeInsight.lookup.LookupElement;
+import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -76,17 +77,17 @@ public class RequirejsReference implements PsiReference {
     @NotNull
     @Override
     public Object[] getVariants() {
-        ArrayList<String> files = filterFiles(this.element);
+        ArrayList<String> files = filterFiles(element);
 
         ArrayList<LookupElement> completionResultSet = new ArrayList<LookupElement>();
 
         for (int i = 0; i < files.size(); i++) {
             completionResultSet.add(
-                    new RequirejsLookupElement(
-                            files.get(i),
-                            RequirejsInsertHandler.getInstance(),
-                            this.element
-                    )
+                    LookupElementBuilder
+                            .create(element, files.get(i))
+                            .withInsertHandler(
+                                    RequirejsInsertHandler.getInstance()
+                            )
             );
         }
 

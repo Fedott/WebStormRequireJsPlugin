@@ -9,13 +9,11 @@ public class RequirejsInsertHandler implements InsertHandler {
 
     @Override
     public void handleInsert(InsertionContext insertionContext, LookupElement lookupElement) {
-        if (lookupElement instanceof RequirejsLookupElement) {
-            insertionContext.getDocument().replaceString(
-                    ((RequirejsLookupElement) lookupElement).element.getTextOffset() + 1,
-                    insertionContext.getTailOffset(),
-                    ((RequirejsLookupElement) lookupElement).path
-            );
-        }
+        insertionContext.getDocument().replaceString(
+                lookupElement.getPsiElement().getTextOffset() + 1,
+                insertionContext.getTailOffset(),
+                lookupElement.getLookupString()
+        );
     }
 
     public static RequirejsInsertHandler getInstance() {
