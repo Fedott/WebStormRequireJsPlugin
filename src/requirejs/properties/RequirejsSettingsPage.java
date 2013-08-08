@@ -13,8 +13,11 @@ public class RequirejsSettingsPage implements Configurable {
 
     public static final String WEB_PATH_PROPERTY_NAME = "web_dir";
     public static final String REQUIREJS_FUNCTION_NAME_PROPERTY_NAME = "requirejs_function_name";
+    public static final String REQUIREJS_MAIN_JS_FILE_PATH = "requirejs_main_js_file_path";
     public static final String DEFAULT_REQUIREJS_FUNCTION_NAME = "require";
     public static final String DEFAULT_WEB_PATH = "webfront/web";
+    public static final String DEFAULT_REQUIREJS_MAIN_JS_FILE_PATH = "main.js";
+
 
     public Project project;
     protected JTextField webPathTextField;

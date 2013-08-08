@@ -22,6 +22,7 @@ public class RequirejsPsiReferenceProvider extends PsiReferenceProvider {
 
     protected Project project;
     PropertiesComponent propertiesComponent;
+    public static ArrayList<String> requirejsPaths;
 
     @NotNull
     @Override
@@ -31,21 +32,33 @@ public class RequirejsPsiReferenceProvider extends PsiReferenceProvider {
             propertiesComponent = PropertiesComponent.getInstance(project);
         }
 
-        PsiFile mainJs = PsiManager.getInstance(project).findFile(project.getBaseDir().findFileByRelativePath("webfront/web/main.js")); // JSObjectLiteralExpression
-        if (mainJs instanceof JSFileImpl) {
-            if (((JSFileImpl) mainJs).getTreeElement() == null) {
-                parseMainJsFile(((JSFileImpl) mainJs).calcTreeElement());
-            } else {
-                parseMainJsFile(((JSFileImpl) mainJs).getTreeElement());
-            }
-        }
-
         PropertiesComponent properties = PropertiesComponent.getInstance(project);
         String webDirPrefString = properties.getValue(RequirejsSettingsPage.WEB_PATH_PROPERTY_NAME, RequirejsSettingsPage.DEFAULT_WEB_PATH);
         VirtualFile webDir = project.getBaseDir().findFileByRelativePath(webDirPrefString);
 
         if (webDir == null) {
             return PsiReference.EMPTY_ARRAY;
+        }
+
+        if (null == requirejsPaths) {
+            PsiFile mainJs = PsiManager
+                    .getInstance(project)
+                    .findFile(
+                            webDir
+                                    .findFileByRelativePath(
+                                            properties.getValue(
+                                                    RequirejsSettingsPage.REQUIREJS_MAIN_JS_FILE_PATH,
+                                                    RequirejsSettingsPage.DEFAULT_REQUIREJS_MAIN_JS_FILE_PATH
+                                            )
+                                    )
+                    );
+            if (mainJs instanceof JSFileImpl) {
+                if (((JSFileImpl) mainJs).getTreeElement() == null) {
+                    requirejsPaths = parseMainJsFile(((JSFileImpl) mainJs).calcTreeElement());
+                } else {
+                    requirejsPaths = parseMainJsFile(((JSFileImpl) mainJs).getTreeElement());
+                }
+            }
         }
 
         try {
@@ -147,11 +160,38 @@ public class RequirejsPsiReferenceProvider extends PsiReferenceProvider {
                         );
                     }
                     if (identifierName.equals("paths")) {
-                        // TODO: реализовать парсинг путей
+                        list.addAll(
+                                parseMainJsPaths(
+                                        (TreeElement) node
+                                                .findChildByType(JSElementTypes.OBJECT_LITERAL_EXPRESSION)
+                                                .getFirstChildNode()
+                                )
+                        );
                     }
                 }
             }
         } catch (NullPointerException ignored) {}
+
+        return list;
+    }
+
+    protected ArrayList<String> parseMainJsPaths(TreeElement node) {
+        ArrayList<String> list = new ArrayList<String>();
+        if (null == node) {
+            return list;
+        }
+
+        TreeElement next = node.getTreeNext();
+        if (null != next) {
+            list.addAll(parseMainJsPaths(next));
+        }
+
+        if (node.getElementType() == JSElementTypes.PROPERTY) {
+            TreeElement path = (TreeElement) node.findChildByType(JSElementTypes.LITERAL_EXPRESSION);
+            if (null != path) {
+                list.add(path.getText().replace("\"","").replace("'", ""));
+            }
+        }
 
         return list;
     }
