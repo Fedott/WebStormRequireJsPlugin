@@ -1,6 +1,6 @@
 <idea-plugin version="2">
   <id>com.fedot.idea.requirejs</id>
-  <name>Require autocomplete file plugin</name>
+  <name>RequireJs autocomplete file path plugin</name>
   <version>0.4</version>
   <vendor email="fedotru@gmail.com" url="http://guthub.com/Fedott/">Vladimir Fedorov</vendor>
 

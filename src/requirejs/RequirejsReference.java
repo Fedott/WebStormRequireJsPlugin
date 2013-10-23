@@ -61,6 +61,12 @@ public class RequirejsReference implements PsiReference {
             return PsiManager.getInstance(project).findFile(targetFile);
         }
 
+        if (RequirejsPsiReferenceProvider.requirejsConfigAliasesMap.containsKey(path)) {
+            return PsiManager
+                    .getInstance(project)
+                    .findFile(RequirejsPsiReferenceProvider.requirejsConfigAliasesMap.get(path));
+        }
+
         return null;
     }
 
