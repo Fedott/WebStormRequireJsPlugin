@@ -1,7 +1,7 @@
 <idea-plugin version="2">
   <id>com.fedot.idea.requirejs</id>
   <name>RequireJs autocomplete file path plugin</name>
-  <version>0.5</version>
+  <version>0.6</version>
   <vendor email="fedotru@gmail.com" url="http://guthub.com/Fedott/">Vladimir Fedorov</vendor>
 
   <depends>com.intellij.modules.platform</depends>
@@ -12,7 +12,11 @@
       ]]></description>
 
   <change-notes><![CDATA[
-      Now the plugin works on jdk 1.6. It is necessary for Mac OS X.
+      Version 0.6:
+        - Refactor settings page
+        - Added setting path to require js config file
+      Version 0.5:
+        - Now the plugin works on jdk 1.6. It is necessary for Mac OS X.
       ]]>
   </change-notes>
 
