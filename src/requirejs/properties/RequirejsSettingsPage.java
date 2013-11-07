@@ -8,6 +8,7 @@ import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
 
 public class RequirejsSettingsPage implements Configurable {
 
@@ -22,6 +23,7 @@ public class RequirejsSettingsPage implements Configurable {
     public Project project;
     protected JTextField webPathTextField;
     protected JTextField requirejsFunctionNameField;
+    protected JTextField requirejsMainFileField;
 
     @Nls
     @Override
@@ -40,37 +42,50 @@ public class RequirejsSettingsPage implements Configurable {
     public JComponent createComponent() {
         PropertiesComponent properties = PropertiesComponent.getInstance(project);
 
-        JPanel webPathLine = new JPanel();
-        webPathLine.setLayout(new BoxLayout(webPathLine, BoxLayout.X_AXIS));
-
-        webPathTextField = new JTextField(100);
-        JLabel webPathLabel = new JLabel("Require.js web path");
-        webPathLine.add(webPathLabel);
+        webPathTextField = new JTextField(50);
+        JLabel webPathLabel = new JLabel("Require.js web path", JLabel.TRAILING);
         webPathLabel.setLabelFor(webPathTextField);
-        webPathLine.add(webPathTextField);
-        webPathLine.add(Box.createHorizontalGlue());
 
         webPathTextField.setText(properties.getValue(WEB_PATH_PROPERTY_NAME, DEFAULT_WEB_PATH));
 
         requirejsFunctionNameField = new JTextField(50);
-        JLabel requirejsFunctionNameLabel = new JLabel("require function name");
+        JLabel requirejsFunctionNameLabel = new JLabel("Require.js function name", JLabel.TRAILING);
         requirejsFunctionNameLabel.setLabelFor(requirejsFunctionNameField);
-        JPanel requirejsFunctionNameLine = new JPanel();
-        requirejsFunctionNameLine.setLayout(new BoxLayout(requirejsFunctionNameLine, BoxLayout.X_AXIS));
-        requirejsFunctionNameLine.add(requirejsFunctionNameLabel);
-        requirejsFunctionNameLine.add(requirejsFunctionNameField);
-        requirejsFunctionNameLine.add(Box.createHorizontalGlue());
 
         requirejsFunctionNameField.setText(properties.getValue(REQUIREJS_FUNCTION_NAME_PROPERTY_NAME, DEFAULT_REQUIREJS_FUNCTION_NAME));
 
-        JPanel settingsPage = new JPanel();
-        settingsPage.setLayout(new BoxLayout(settingsPage, BoxLayout.Y_AXIS));
-        settingsPage.add(requirejsFunctionNameLine);
-        settingsPage.add(Box.createVerticalStrut(8));
-        settingsPage.add(webPathLine);
-        settingsPage.add(Box.createVerticalGlue());
+        requirejsMainFileField = new JTextField(50);
+        JLabel requirejsMainFileLabel = new JLabel("Require.js config file path", JLabel.TRAILING);
+        requirejsMainFileLabel.setLabelFor(requirejsMainFileField);
 
-        return settingsPage;
+        requirejsMainFileField.setText(properties.getValue(REQUIREJS_MAIN_JS_FILE_PATH, DEFAULT_REQUIREJS_MAIN_JS_FILE_PATH));
+
+
+
+        JPanel newSettingsPage = new JPanel();
+        newSettingsPage.setLayout(new GridBagLayout());
+        newSettingsPage.add(
+                requirejsFunctionNameLabel,
+                new GridBagConstraints(0, 0, 1, 1, 0, 0, GridBagConstraints.CENTER, GridBagConstraints.BOTH, new Insets(5, 0, 5, 0), 0, 0));
+        newSettingsPage.add(
+                requirejsFunctionNameField,
+                new GridBagConstraints(1, 0, 1, 1, 0, 0, GridBagConstraints.CENTER, GridBagConstraints.BOTH, new Insets(5, 0, 5, 5), 0, 0));
+        newSettingsPage.add(
+                webPathLabel,
+                new GridBagConstraints(0, 1, 1, 1, 0, 0, GridBagConstraints.CENTER, GridBagConstraints.BOTH, new Insets(5, 0, 5, 0), 0, 0));
+        newSettingsPage.add(
+                webPathTextField,
+                new GridBagConstraints(1, 1, 1, 1, 0, 0, GridBagConstraints.CENTER, GridBagConstraints.BOTH, new Insets(5, 0, 5, 5), 0, 0));
+        newSettingsPage.add(
+                requirejsMainFileLabel,
+                new GridBagConstraints(0, 2, 1, 1, 0, 0, GridBagConstraints.CENTER, GridBagConstraints.BOTH, new Insets(5, 0, 5, 0), 0, 0));
+        newSettingsPage.add(
+                requirejsMainFileField,
+                new GridBagConstraints(1, 2, 1, 1, 0, 0, GridBagConstraints.CENTER, GridBagConstraints.BOTH, new Insets(5, 0, 5, 5), 0, 0));
+
+
+
+        return newSettingsPage;
     }
 
     @Override
@@ -83,6 +98,7 @@ public class RequirejsSettingsPage implements Configurable {
         PropertiesComponent properties = PropertiesComponent.getInstance(project);
         properties.setValue(WEB_PATH_PROPERTY_NAME, webPathTextField.getText());
         properties.setValue(REQUIREJS_FUNCTION_NAME_PROPERTY_NAME, requirejsFunctionNameField.getText());
+        properties.setValue(REQUIREJS_MAIN_JS_FILE_PATH, requirejsMainFileField.getText());
     }
 
     @Override
