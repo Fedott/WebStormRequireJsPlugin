@@ -1,14 +1,18 @@
 <idea-plugin version="2">
   <id>com.fedot.idea.requirejs</id>
-  <name>RequireJs autocomplete file path plugin</name>
-  <version>0.6</version>
+  <name>Require.js plugin</name>
+  <version>0.7</version>
   <vendor email="fedotru@gmail.com" url="http://guthub.com/Fedott/">Vladimir Fedorov</vendor>
 
   <depends>com.intellij.modules.platform</depends>
   <depends>JavaScript</depends>
 
     <description><![CDATA[
-      Require js file path auto-completion plugin
+      Require js plugin
+      Features:
+        - Auto-complete file path
+        - Reference find files
+        - Auto-complete path for template (path start with "tpl!")
       ]]></description>
 
   <change-notes><![CDATA[

@@ -121,6 +121,21 @@ public class RequirejsReference implements PsiReference {
         String value = element.getText().replace("'", "").replace("\"", "").replace("IntellijIdeaRulezzz ", "");
         Boolean tpl = value.startsWith("tpl!");
         String valuePath = value.replaceFirst("tpl!", "");
+        if (valuePath.startsWith("./")) {
+            try {
+                valuePath = valuePath
+                        .replaceFirst(
+                                ".",
+                                element
+                                        .getContainingFile()
+                                        .getOriginalFile()
+                                        .getVirtualFile()
+                                        .getParent()
+                                        .getPath()
+                                        .replace(webDir.getPath().concat("/"), "")
+                        );
+            } catch (NullPointerException ignored) {}
+        }
 
         ArrayList<String> allFiles = getAllFilesInDirectory(webDir);
         ArrayList<String> trueFiles = new ArrayList<String>();
@@ -132,8 +147,10 @@ public class RequirejsReference implements PsiReference {
             if (file.startsWith(valuePath)) {
                 if (tpl && file.endsWith(".html")) {
                     trueFiles.add("tpl!" + file);
+                    trueFiles.add("tpl!" + file.replace(valuePath, "./"));
                 } else if (file.endsWith(".js")) {
                     trueFiles.add(file.replace(".js", ""));
+                    trueFiles.add(file.replace(".js", "").replace(valuePath, "./"));
                 }
             }
         }
