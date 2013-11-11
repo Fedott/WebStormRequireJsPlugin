@@ -16,6 +16,8 @@
       ]]></description>
 
   <change-notes><![CDATA[
+      Version 0.7:
+        - Add auto-complete for path start with dot
       Version 0.6:
         - Refactor settings page
         - Added setting path to require js config file
