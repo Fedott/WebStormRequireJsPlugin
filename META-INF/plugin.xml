@@ -1,28 +1,28 @@
 <idea-plugin version="2">
   <id>com.fedot.idea.requirejs</id>
   <name>Require.js plugin</name>
-  <version>0.7</version>
+  <version>0.8</version>
   <vendor email="fedotru@gmail.com" url="http://guthub.com/Fedott/">Vladimir Fedorov</vendor>
 
   <depends>com.intellij.modules.platform</depends>
   <depends>JavaScript</depends>
 
     <description><![CDATA[
-      Require js plugin
-      Features:
-        - Auto-complete file path
-        - Reference find files
-        - Auto-complete path for template (path start with "tpl!")
+      Require js plugin<br />
+      Features:<br />
+        - Auto-complete file path<br />
+        - Reference find files<br />
+        - Auto-complete path for template (path start with "tpl!")<br />
       ]]></description>
 
   <change-notes><![CDATA[
-      Version 0.7:
-        - Add auto-complete for path start with dot
-      Version 0.6:
-        - Refactor settings page
-        - Added setting path to require js config file
-      Version 0.5:
-        - Now the plugin works on jdk 1.6. It is necessary for Mac OS X.
+      Version 0.7:<br />
+        - Add auto-complete for path start with dot<br />
+      Version 0.6:<br />
+        - Refactor settings page<br />
+        - Added setting path to require js config file<br />
+      Version 0.5:<br />
+        - Now the plugin works on jdk 1.6. It is necessary for Mac OS X.<br />
       ]]>
   </change-notes>
 
