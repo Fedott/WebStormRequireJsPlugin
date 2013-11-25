@@ -11,6 +11,8 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiReference;
 import com.intellij.util.IncorrectOperationException;
+import cucumber.deps.difflib.StringUtills;
+import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -121,20 +123,57 @@ public class RequirejsReference implements PsiReference {
         String value = element.getText().replace("'", "").replace("\"", "").replace("IntellijIdeaRulezzz ", "");
         Boolean tpl = value.startsWith("tpl!");
         String valuePath = value.replaceFirst("tpl!", "");
+        Boolean oneDot = false;
+        Integer doubleDotCount = 0;
+        String filePath = element
+                .getContainingFile()
+                .getOriginalFile()
+                .getVirtualFile()
+                .getParent()
+                .getPath()
+                .replace(webDir.getPath().concat("/"), "");
+        
         if (valuePath.startsWith("./")) {
+            oneDot = true;
             try {
                 valuePath = valuePath
                         .replaceFirst(
                                 ".",
-                                element
-                                        .getContainingFile()
-                                        .getOriginalFile()
-                                        .getVirtualFile()
-                                        .getParent()
-                                        .getPath()
-                                        .replace(webDir.getPath().concat("/"), "")
+                                filePath
                         );
             } catch (NullPointerException ignored) {}
+        }
+
+        if (valuePath.startsWith("..")) {
+            doubleDotCount = (valuePath.length() - valuePath.replaceAll("\\.\\.", "").length()) / 2;
+            String[] pathsOfPath = filePath.split("/");
+            if (pathsOfPath.length > 0) {
+                Boolean doubleDotCountTrues = false;
+
+                while (!doubleDotCountTrues && 0 != doubleDotCount) {
+                    if (valuePath.startsWith(StringUtils.repeat("../", doubleDotCount))) {
+                        doubleDotCountTrues = true;
+                    } else if (valuePath.startsWith(StringUtils.repeat("../", doubleDotCount - 1) + "..")) {
+                        doubleDotCountTrues = true;
+                    } else {
+                        doubleDotCount--;
+                    }
+                }
+
+                if (doubleDotCount > 0) {
+                    if (doubleDotCount > pathsOfPath.length) {
+                        return new ArrayList<String>();
+                    }
+                    StringBuilder newValuePath = new StringBuilder();
+                    for (int i = 0; i < pathsOfPath.length - doubleDotCount; i++) {
+                        if (0 != i) {
+                            newValuePath.append("/");
+                        }
+                        newValuePath.append(pathsOfPath[i]);
+                    }
+                    valuePath = newValuePath.toString();
+                }
+            }
         }
 
         ArrayList<String> allFiles = getAllFilesInDirectory(webDir);
@@ -144,13 +183,24 @@ public class RequirejsReference implements PsiReference {
 
         for (int i = 0; i < allFiles.size(); i++) {
             file = allFiles.get(i);
+
             if (file.startsWith(valuePath)) {
+                // Prepare file path
+                if (oneDot) {
+                    file = file.replace(valuePath, "./");
+                }
+
+                if (doubleDotCount > 0) {
+                    if (!valuePath.equals("")) {
+                        file = file.replace(valuePath + "/", "");
+                    }
+                    file = StringUtils.repeat("../", doubleDotCount) + file;
+                }
+
                 if (tpl && file.endsWith(".html")) {
                     trueFiles.add("tpl!" + file);
-                    trueFiles.add("tpl!" + file.replace(valuePath, "./"));
                 } else if (file.endsWith(".js")) {
                     trueFiles.add(file.replace(".js", ""));
-                    trueFiles.add(file.replace(".js", "").replace(valuePath, "./"));
                 }
             }
         }
