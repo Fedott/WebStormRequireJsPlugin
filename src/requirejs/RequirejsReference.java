@@ -45,21 +45,43 @@ public class RequirejsReference implements PsiReference {
         } else {
             path = path.concat(".js");
         }
+
+        String filePath = element
+                .getContainingFile()
+                .getVirtualFile()
+                .getParent()
+                .getPath()
+                .replace(webDir.getPath().concat("/"), "");
+
         if (path.startsWith("./")) {
             path = path.replaceFirst(
                     ".",
-                    element
-                            .getContainingFile()
-                            .getVirtualFile()
-                            .getParent()
-                            .getPath()
-                            .replace(webDir.getPath(), "")
+                    filePath
             );
         }
         VirtualFile targetFile = webDir.findFileByRelativePath(path);
 
         if (targetFile != null) {
             return PsiManager.getInstance(project).findFile(targetFile);
+        }
+
+        if (path.startsWith("..")) {
+            Integer doubleDotCount = getDoubleDotCount(path);
+            String[] pathsOfPath = filePath.split("/");
+            if (pathsOfPath.length > 0) {
+                if (doubleDotCount > 0) {
+                    if (doubleDotCount <= pathsOfPath.length) {
+                        String pathOnDots = getNormalizedPath(doubleDotCount, pathsOfPath);
+                        targetFile = webDir.findFileByRelativePath(
+                                path.replace(StringUtil.repeat("../", doubleDotCount), pathOnDots.concat("/"))
+                        );
+
+                        if (targetFile != null) {
+                            return PsiManager.getInstance(project).findFile(targetFile);
+                        }
+                    }
+                }
+            }
         }
 
         if (RequirejsPsiReferenceProvider.requirejsConfigAliasesMap.containsKey(path)) {
@@ -144,33 +166,14 @@ public class RequirejsReference implements PsiReference {
         }
 
         if (valuePath.startsWith("..")) {
-            doubleDotCount = (valuePath.length() - valuePath.replaceAll("\\.\\.", "").length()) / 2;
+            doubleDotCount = getDoubleDotCount(valuePath);
             String[] pathsOfPath = filePath.split("/");
             if (pathsOfPath.length > 0) {
-                Boolean doubleDotCountTrues = false;
-
-                while (!doubleDotCountTrues && 0 != doubleDotCount) {
-                    if (valuePath.startsWith(StringUtil.repeat("../", doubleDotCount))) {
-                        doubleDotCountTrues = true;
-                    } else if (valuePath.startsWith(StringUtil.repeat("../", doubleDotCount - 1) + "..")) {
-                        doubleDotCountTrues = true;
-                    } else {
-                        doubleDotCount--;
-                    }
-                }
-
                 if (doubleDotCount > 0) {
                     if (doubleDotCount > pathsOfPath.length) {
                         return new ArrayList<String>();
                     }
-                    StringBuilder newValuePath = new StringBuilder();
-                    for (int i = 0; i < pathsOfPath.length - doubleDotCount; i++) {
-                        if (0 != i) {
-                            newValuePath.append("/");
-                        }
-                        newValuePath.append(pathsOfPath[i]);
-                    }
-                    valuePath = newValuePath.toString();
+                    valuePath = getNormalizedPath(doubleDotCount, pathsOfPath);
                 }
             }
         }
@@ -205,6 +208,34 @@ public class RequirejsReference implements PsiReference {
         }
 
         return trueFiles;
+    }
+
+    protected String getNormalizedPath(Integer doubleDotCount, String[] pathsOfPath) {
+        StringBuilder newValuePath = new StringBuilder();
+        for (int i = 0; i < pathsOfPath.length - doubleDotCount; i++) {
+            if (0 != i) {
+                newValuePath.append("/");
+            }
+            newValuePath.append(pathsOfPath[i]);
+        }
+        return newValuePath.toString();
+    }
+
+    protected Integer getDoubleDotCount(String valuePath) {
+        Integer doubleDotCount = (valuePath.length() - valuePath.replaceAll("\\.\\.", "").length()) / 2;
+
+        Boolean doubleDotCountTrues = false;
+
+        while (!doubleDotCountTrues && 0 != doubleDotCount) {
+            if (valuePath.startsWith(StringUtil.repeat("../", doubleDotCount))) {
+                doubleDotCountTrues = true;
+            } else if (valuePath.startsWith(StringUtil.repeat("../", doubleDotCount - 1) + "..")) {
+                doubleDotCountTrues = true;
+            } else {
+                doubleDotCount--;
+            }
+        }
+        return doubleDotCount;
     }
 
     @Override
