@@ -4,6 +4,7 @@ import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.impl.VirtualDirectoryImpl;
 import com.intellij.openapi.vfs.newvfs.impl.VirtualFileImpl;
@@ -11,8 +12,6 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiReference;
 import com.intellij.util.IncorrectOperationException;
-import cucumber.deps.difflib.StringUtills;
-import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -151,9 +150,9 @@ public class RequirejsReference implements PsiReference {
                 Boolean doubleDotCountTrues = false;
 
                 while (!doubleDotCountTrues && 0 != doubleDotCount) {
-                    if (valuePath.startsWith(StringUtils.repeat("../", doubleDotCount))) {
+                    if (valuePath.startsWith(StringUtil.repeat("../", doubleDotCount))) {
                         doubleDotCountTrues = true;
-                    } else if (valuePath.startsWith(StringUtils.repeat("../", doubleDotCount - 1) + "..")) {
+                    } else if (valuePath.startsWith(StringUtil.repeat("../", doubleDotCount - 1) + "..")) {
                         doubleDotCountTrues = true;
                     } else {
                         doubleDotCount--;
@@ -191,10 +190,10 @@ public class RequirejsReference implements PsiReference {
                 }
 
                 if (doubleDotCount > 0) {
-                    if (!valuePath.equals("")) {
+                    if (!StringUtil.isEmpty(valuePath)) {
                         file = file.replace(valuePath + "/", "");
                     }
-                    file = StringUtils.repeat("../", doubleDotCount) + file;
+                    file = StringUtil.repeat("../", doubleDotCount) + file;
                 }
 
                 if (tpl && file.endsWith(".html")) {

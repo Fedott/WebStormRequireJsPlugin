@@ -1,7 +1,7 @@
 <idea-plugin version="2">
   <id>com.fedot.idea.requirejs</id>
   <name>Require.js plugin</name>
-  <version>0.8</version>
+  <version>0.9</version>
   <vendor email="fedotru@gmail.com" url="http://guthub.com/Fedott/">Vladimir Fedorov</vendor>
 
   <depends>com.intellij.modules.platform</depends>
@@ -16,10 +16,12 @@
       ]]></description>
 
   <change-notes><![CDATA[
+      Version 0.9:<br />
+        - Added reference for relative paths<br />
       Version 0.8:<br />
-        - Add autocompletion relative paths<br />
+        - Added autocompletion relative paths<br />
       Version 0.7:<br />
-        - Add autocompletion for paths start with dot<br />
+        - Added autocompletion for paths start with dot<br />
       Version 0.6:<br />
         - Refactor settings page<br />
         - Added setting path to require js config file<br />
