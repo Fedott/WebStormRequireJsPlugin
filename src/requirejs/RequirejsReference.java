@@ -146,6 +146,8 @@ public class RequirejsReference implements PsiReference {
         String valuePath = value.replaceFirst("tpl!", "");
         Boolean oneDot = false;
         Integer doubleDotCount = 0;
+        String pathOnDots = "";
+        String dotString = "";
         String filePath = element
                 .getContainingFile()
                 .getOriginalFile()
@@ -173,7 +175,12 @@ public class RequirejsReference implements PsiReference {
                     if (doubleDotCount > pathsOfPath.length) {
                         return new ArrayList<String>();
                     }
-                    valuePath = getNormalizedPath(doubleDotCount, pathsOfPath);
+                    pathOnDots = getNormalizedPath(doubleDotCount, pathsOfPath);
+                    dotString = StringUtil.repeat("../", doubleDotCount);
+                    if (valuePath.endsWith("..") || !StringUtil.isEmpty(pathOnDots)) {
+                        dotString = dotString.substring(0, dotString.length() - 1);
+                    }
+                    valuePath = valuePath.replace(dotString, pathOnDots);
                 }
             }
         }
@@ -194,9 +201,9 @@ public class RequirejsReference implements PsiReference {
 
                 if (doubleDotCount > 0) {
                     if (!StringUtil.isEmpty(valuePath)) {
-                        file = file.replace(valuePath + "/", "");
+                        file = file.replace(pathOnDots, "");
                     }
-                    file = StringUtil.repeat("../", doubleDotCount) + file;
+                    file = dotString.concat(file);
                 }
 
                 if (tpl && file.endsWith(".html")) {
