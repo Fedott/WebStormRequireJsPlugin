@@ -5,6 +5,9 @@ import com.intellij.lang.javascript.JSElementTypes;
 import com.intellij.lang.javascript.JSTokenTypes;
 import com.intellij.lang.javascript.psi.JSCallExpression;
 import com.intellij.lang.javascript.psi.impl.JSFileImpl;
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationType;
+import com.intellij.notification.Notifications;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -24,6 +27,8 @@ public class RequirejsPsiReferenceProvider extends PsiReferenceProvider {
     public static VirtualFile requirejsBasePath;
     public static HashMap<String, VirtualFile> requirejsConfigAliasesMap = new HashMap<String, VirtualFile>();
 
+    public long lastShowNotification = 0;
+
     @NotNull
     @Override
     public PsiReference[] getReferencesByElement(@NotNull PsiElement psiElement, @NotNull ProcessingContext processingContext) {
@@ -37,26 +42,34 @@ public class RequirejsPsiReferenceProvider extends PsiReferenceProvider {
         VirtualFile webDir = project.getBaseDir().findFileByRelativePath(webDirPrefString);
 
         if (webDir == null) {
+            this.showInfoNotification("Web path not found");
             return PsiReference.EMPTY_ARRAY;
         }
 
         if (requirejsConfigAliasesMap.size() == 0) {
-            PsiFile mainJs = PsiManager
-                    .getInstance(project)
-                    .findFile(
-                            webDir
-                                    .findFileByRelativePath(
-                                            properties.getValue(
-                                                    RequirejsSettingsPage.REQUIREJS_MAIN_JS_FILE_PATH,
-                                                    RequirejsSettingsPage.DEFAULT_REQUIREJS_MAIN_JS_FILE_PATH
-                                            )
-                                    )
+            VirtualFile mainJsVirtualFile = webDir
+                    .findFileByRelativePath(
+                            properties.getValue(
+                                    RequirejsSettingsPage.REQUIREJS_MAIN_JS_FILE_PATH,
+                                    RequirejsSettingsPage.DEFAULT_REQUIREJS_MAIN_JS_FILE_PATH
+                            )
                     );
-            if (mainJs instanceof JSFileImpl) {
-                if (((JSFileImpl) mainJs).getTreeElement() == null) {
-                    requirejsConfigAliasesMap = parseMainJsFile(((JSFileImpl) mainJs).calcTreeElement(), webDir);
+            if (null == mainJsVirtualFile) {
+                this.showInfoNotification("Config file not found");
+            } else {
+                PsiFile mainJs = PsiManager
+                        .getInstance(project)
+                        .findFile(
+                                mainJsVirtualFile
+                        );
+                if (mainJs instanceof JSFileImpl) {
+                    if (((JSFileImpl) mainJs).getTreeElement() == null) {
+                        requirejsConfigAliasesMap = parseMainJsFile(((JSFileImpl) mainJs).calcTreeElement(), webDir);
+                    } else {
+                        requirejsConfigAliasesMap = parseMainJsFile(((JSFileImpl) mainJs).getTreeElement(), webDir);
+                    }
                 } else {
-                    requirejsConfigAliasesMap = parseMainJsFile(((JSFileImpl) mainJs).getTreeElement(), webDir);
+                    this.showInfoNotification("Config file wrong format");
                 }
             }
         }
@@ -206,4 +219,19 @@ public class RequirejsPsiReferenceProvider extends PsiReferenceProvider {
 
         return list;
     }
+
+    public void showInfoNotification(String content) {
+        this.showInfoNotification(content, NotificationType.WARNING);
+    }
+
+    public void showInfoNotification(String content, NotificationType type) {
+        long currentTimestamp = System.currentTimeMillis();
+        if (currentTimestamp - lastShowNotification < 60000) {
+            return;
+        }
+        lastShowNotification = currentTimestamp;
+        Notification errorNotification = new Notification("Require.js plugin", "Require.js plugin", content, type);
+        Notifications.Bus.notify(errorNotification, this.project);
+    }
+
 }
