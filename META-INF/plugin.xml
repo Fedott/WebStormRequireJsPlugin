@@ -18,6 +18,7 @@
   <change-notes><![CDATA[
       Version 0.9:<br />
         - Added reference for relative paths<br />
+        - Show notification for wrong settings
       Version 0.8:<br />
         - Added autocompletion relative paths<br />
       Version 0.7:<br />
