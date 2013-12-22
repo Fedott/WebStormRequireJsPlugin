@@ -54,6 +54,6 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <psi.referenceContributor implementation="requirejs.RequirejsPsiReferenceContributor" />
-    <projectConfigurable implementation="requirejs.properties.RequirejsSettingsPage" />
+    <projectConfigurable implementation="requirejs.properties.RequirejsSettings" />
   </extensions>
 </idea-plugin>
