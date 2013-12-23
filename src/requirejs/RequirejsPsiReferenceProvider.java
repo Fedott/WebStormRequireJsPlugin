@@ -31,7 +31,7 @@ public class RequirejsPsiReferenceProvider extends PsiReferenceProvider {
     @NotNull
     @Override
     public PsiReference[] getReferencesByElement(@NotNull PsiElement psiElement, @NotNull ProcessingContext processingContext) {
-        if (project == null) {
+        if (project == null || project.isDisposed()) {
             project = psiElement.getProject();
             propertiesComponent = PropertiesComponent.getInstance(project);
         }

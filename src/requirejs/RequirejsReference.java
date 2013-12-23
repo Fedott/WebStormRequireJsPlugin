@@ -110,10 +110,10 @@ public class RequirejsReference implements PsiReference {
 
         ArrayList<LookupElement> completionResultSet = new ArrayList<LookupElement>();
 
-        for (int i = 0; i < files.size(); i++) {
+        for (String file : files) {
             completionResultSet.add(
                     LookupElementBuilder
-                            .create(element, files.get(i))
+                            .create(element, file)
                             .withInsertHandler(
                                     RequirejsInsertHandler.getInstance()
                             )
@@ -128,11 +128,11 @@ public class RequirejsReference implements PsiReference {
 
         VirtualFile[] childrens = directory.getChildren();
         if (childrens.length != 0) {
-            for (int i = 0; i < childrens.length; i++) {
-                if (childrens[i] instanceof VirtualDirectoryImpl) {
-                    files.addAll(getAllFilesInDirectory(childrens[i]));
-                } else if (childrens[i] instanceof VirtualFileImpl) {
-                    files.add(childrens[i].getPath().replace(webDir.getPath() + "/", ""));
+            for (VirtualFile children : childrens) {
+                if (children instanceof VirtualDirectoryImpl) {
+                    files.addAll(getAllFilesInDirectory(children));
+                } else if (children instanceof VirtualFileImpl) {
+                    files.add(children.getPath().replace(webDir.getPath() + "/", ""));
                 }
             }
         }
@@ -146,6 +146,7 @@ public class RequirejsReference implements PsiReference {
         String valuePath = value.replaceFirst("tpl!", "");
         Boolean oneDot = false;
         Integer doubleDotCount = 0;
+        Boolean notEndSlash = false;
         String pathOnDots = "";
         String dotString = "";
         String filePath = element
@@ -177,6 +178,9 @@ public class RequirejsReference implements PsiReference {
                     }
                     pathOnDots = getNormalizedPath(doubleDotCount, pathsOfPath);
                     dotString = StringUtil.repeat("../", doubleDotCount);
+                    if (valuePath.endsWith("..")) {
+                        notEndSlash = true;
+                    }
                     if (valuePath.endsWith("..") || !StringUtil.isEmpty(pathOnDots)) {
                         dotString = dotString.substring(0, dotString.length() - 1);
                     }
@@ -190,18 +194,21 @@ public class RequirejsReference implements PsiReference {
 
         String file;
 
-        for (int i = 0; i < allFiles.size(); i++) {
-            file = allFiles.get(i);
+        for (String allFile : allFiles) {
+            file = allFile;
 
             if (file.startsWith(valuePath)) {
                 // Prepare file path
                 if (oneDot) {
-                    file = file.replace(valuePath, "./");
+                    file = file.replaceFirst(filePath, ".");
                 }
 
                 if (doubleDotCount > 0) {
                     if (!StringUtil.isEmpty(valuePath)) {
                         file = file.replace(pathOnDots, "");
+                    }
+                    if (notEndSlash) {
+                        file = "/".concat(file);
                     }
                     file = dotString.concat(file);
                 }
