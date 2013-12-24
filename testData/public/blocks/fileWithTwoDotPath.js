@@ -7,4 +7,6 @@ define(function(require) {
     var dependWithTwoDotAndTwoDirectories = require('../blocks/childBlocks');
     var dependWithTwoDotAndTwoDirectoriesAndSlash = require('../blocks/childBlocks/');
     var dependWithTwoDotAndDirectoryAndSlashTwoChars = require('../blocks/blo');
+
+    var dependWithTwoDotParentWebPath = require('../../block');
 })

@@ -3,6 +3,7 @@ package requirejs;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.editor.LogicalPosition;
+import com.intellij.openapi.editor.ex.util.EditorUtil;
 import com.intellij.testFramework.fixtures.CodeInsightFixtureTestCase;
 import requirejs.properties.RequirejsSettings;
 
@@ -158,5 +159,50 @@ public class CompletionPathWithTwoDotTest extends CodeInsightFixtureTestCase
                 )
         );
         assertEquals(1, strings.size());
+    }
+
+    public void testCompletionParentWebPath()
+    {
+        // WithTwoDotAndDirectoryAndSlashTwoChars
+        myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(10, 60));
+        myFixture.complete(CompletionType.BASIC, 1);
+        List<String> strings = myFixture.getLookupElementStrings();
+        assert strings != null;
+        assertTrue(
+                strings.isEmpty()
+        );
+        assertEquals(0, strings.size());
+    }
+
+    public void testCompletionTwoTwoDotPath()
+    {
+        myFixture.configureByFiles("public/blocks/childBlocks/fileWithTwoDotPathChild.js");
+
+        myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(1, 39));
+        myFixture.complete(CompletionType.BASIC, 1);
+        List<String> strings = myFixture.getLookupElementStrings();
+        assert strings != null;
+        assertTrue(
+                strings.containsAll(
+                        Arrays.asList(
+                                "../../blocks/block",
+                                "../../blocks/childWebPathFile",
+                                "../../blocks/fileWithDotPath",
+                                "../../blocks/fileWithTwoDotPath",
+                                "../../blocks/childBlocks/childBlock",
+                                "../../blocks/childBlocks/fileWithTwoDotPathChild"
+                        )
+                )
+        );
+        assertEquals(6, strings.size());
+
+        myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(2, 50));
+        myFixture.complete(CompletionType.BASIC, 1);
+        strings = myFixture.getLookupElementStrings();
+        assert strings != null;
+        assertTrue(
+                strings.isEmpty()
+        );
+        assertEquals(0, strings.size());
     }
 }
