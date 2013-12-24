@@ -3,6 +3,7 @@ package requirejs;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.editor.LogicalPosition;
+import com.intellij.psi.PsiElement;
 import com.intellij.testFramework.fixtures.CodeInsightFixtureTestCase;
 import requirejs.properties.RequirejsSettings;
 
@@ -30,9 +31,20 @@ public class CompletionTest extends CodeInsightFixtureTestCase
     }
 
     public void testCompletion() {
-        myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(2, 37));
+        // NotFound
+        myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(1, 40));
         myFixture.complete(CompletionType.BASIC, 1);
         List<String> strings = myFixture.getLookupElementStrings();
+        assert strings != null;
+        assertTrue(
+                strings.isEmpty()
+        );
+        assertEquals(0, strings.size());
+
+        // True
+        myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(2, 37));
+        myFixture.complete(CompletionType.BASIC, 1);
+        strings = myFixture.getLookupElementStrings();
         assert strings != null;
         assertTrue(
                 strings.containsAll(
@@ -46,5 +58,184 @@ public class CompletionTest extends CodeInsightFixtureTestCase
                 )
         );
         assertEquals(5, strings.size());
+
+        // WithoutSlash
+        myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(3, 44));
+        myFixture.complete(CompletionType.BASIC, 1);
+        strings = myFixture.getLookupElementStrings();
+        assert strings != null;
+        assertTrue(
+                strings.containsAll(
+                        Arrays.asList(
+                                "blocks/block",
+                                "blocks/childWebPathFile",
+                                "blocks/fileWithDotPath",
+                                "blocks/fileWithTwoDotPath",
+                                "blocks/childBlocks/childBlock"
+                        )
+                )
+        );
+        assertEquals(5, strings.size());
+
+        // TwoChars
+        myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(4, 36));
+        myFixture.complete(CompletionType.BASIC, 1);
+        strings = myFixture.getLookupElementStrings();
+        assert strings != null;
+        assertTrue(
+                strings.containsAll(
+                        Arrays.asList(
+                                "blocks/block",
+                                "blocks/childWebPathFile",
+                                "blocks/fileWithDotPath",
+                                "blocks/fileWithTwoDotPath",
+                                "blocks/childBlocks/childBlock"
+                        )
+                )
+        );
+        assertEquals(5, strings.size());
+
+        // TwoDirectory
+        myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(5, 56));
+        myFixture.complete(CompletionType.BASIC, 1);
+        strings = myFixture.getLookupElementStrings();
+        assert strings != null;
+        assertTrue(
+                strings.containsAll(
+                        Arrays.asList(
+                                "blocks/childBlocks/childBlock"
+                        )
+                )
+        );
+        assertEquals(1, strings.size());
+
+        // TwoDirectoryWithSlash
+        myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(6, 66));
+        myFixture.complete(CompletionType.BASIC, 1);
+        strings = myFixture.getLookupElementStrings();
+        assert strings != null;
+        assertTrue(
+                strings.containsAll(
+                        Arrays.asList(
+                                "blocks/childBlocks/childBlock"
+                        )
+                )
+        );
+        assertEquals(1, strings.size());
+
+        // RootFound
+        myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(7, 39));
+        myFixture.complete(CompletionType.BASIC, 1);
+        strings = myFixture.getLookupElementStrings();
+        assert strings == null;
+        PsiElement element = myFixture.getFile().findElementAt(myFixture.getCaretOffset());
+        assert element != null;
+        assertEquals("'rootWebPathFile'", element.getText());
+    }
+
+    public void testCompletionInRootWebPathFile()
+    {
+        myFixture.configureByFile("public/rootWebPathFile.js");
+
+        // NotFound
+        myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(1, 40));
+        myFixture.complete(CompletionType.BASIC, 1);
+        List<String> strings = myFixture.getLookupElementStrings();
+        assert strings != null;
+        assertTrue(
+                strings.isEmpty()
+        );
+        assertEquals(0, strings.size());
+
+        // True
+        myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(2, 37));
+        myFixture.complete(CompletionType.BASIC, 1);
+        strings = myFixture.getLookupElementStrings();
+        assert strings != null;
+        assertTrue(
+                strings.containsAll(
+                        Arrays.asList(
+                                "blocks/block",
+                                "blocks/childWebPathFile",
+                                "blocks/fileWithDotPath",
+                                "blocks/fileWithTwoDotPath",
+                                "blocks/childBlocks/childBlock"
+                        )
+                )
+        );
+        assertEquals(5, strings.size());
+
+        // WithoutSlash
+        myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(3, 44));
+        myFixture.complete(CompletionType.BASIC, 1);
+        strings = myFixture.getLookupElementStrings();
+        assert strings != null;
+        assertTrue(
+                strings.containsAll(
+                        Arrays.asList(
+                                "blocks/block",
+                                "blocks/childWebPathFile",
+                                "blocks/fileWithDotPath",
+                                "blocks/fileWithTwoDotPath",
+                                "blocks/childBlocks/childBlock"
+                        )
+                )
+        );
+        assertEquals(5, strings.size());
+
+        // TwoChars
+        myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(4, 36));
+        myFixture.complete(CompletionType.BASIC, 1);
+        strings = myFixture.getLookupElementStrings();
+        assert strings != null;
+        assertTrue(
+                strings.containsAll(
+                        Arrays.asList(
+                                "blocks/block",
+                                "blocks/childWebPathFile",
+                                "blocks/fileWithDotPath",
+                                "blocks/fileWithTwoDotPath",
+                                "blocks/childBlocks/childBlock"
+                        )
+                )
+        );
+        assertEquals(5, strings.size());
+
+        // TwoDirectory
+        myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(5, 56));
+        myFixture.complete(CompletionType.BASIC, 1);
+        strings = myFixture.getLookupElementStrings();
+        assert strings != null;
+        assertTrue(
+                strings.containsAll(
+                        Arrays.asList(
+                                "blocks/childBlocks/childBlock"
+                        )
+                )
+        );
+        assertEquals(1, strings.size());
+
+        // TwoDirectoryWithSlash
+        myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(6, 66));
+        myFixture.complete(CompletionType.BASIC, 1);
+        strings = myFixture.getLookupElementStrings();
+        assert strings != null;
+        assertTrue(
+                strings.containsAll(
+                        Arrays.asList(
+                                "blocks/childBlocks/childBlock"
+                        )
+                )
+        );
+        assertEquals(1, strings.size());
+
+        // RootFound
+        myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(7, 39));
+        myFixture.complete(CompletionType.BASIC, 1);
+        strings = myFixture.getLookupElementStrings();
+        assert strings == null;
+        PsiElement element = myFixture.getFile().findElementAt(myFixture.getCaretOffset());
+        assert element != null;
+        assertEquals("'rootWebPathFile'", element.getText());
     }
 }

@@ -176,7 +176,7 @@ public class CompletionPathWithTwoDotTest extends CodeInsightFixtureTestCase
 
     public void testCompletionTwoTwoDotPath()
     {
-        myFixture.configureByFiles("public/blocks/childBlocks/fileWithTwoDotPathChild.js");
+        myFixture.configureByFile("public/blocks/childBlocks/fileWithTwoDotPathChild.js");
 
         myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(1, 39));
         myFixture.complete(CompletionType.BASIC, 1);
