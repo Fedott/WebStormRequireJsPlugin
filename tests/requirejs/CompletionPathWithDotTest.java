@@ -9,7 +9,7 @@ import requirejs.properties.RequirejsSettings;
 import java.util.Arrays;
 import java.util.List;
 
-public class CompletionPathWithDotTest extends CodeInsightFixtureTestCase
+public class CompletionPathWithDotTest extends RequirejsTestCase
 {
     @Override
     public void setUp() throws Exception {
@@ -25,8 +25,7 @@ public class CompletionPathWithDotTest extends CodeInsightFixtureTestCase
                 "public/blocks/childBlocks/templates/index.html"
 
         );
-        PropertiesComponent props = PropertiesComponent.getInstance(myFixture.getProject());
-        props.setValue(RequirejsSettings.REQUIREJS_WEB_PATH_PROPERTY_NAME, getProject().getBaseDir().getChildren()[0].getName() + "/public");
+        setWebPathSetting();
     }
 
     public void testCompletionWithOneDot() {
