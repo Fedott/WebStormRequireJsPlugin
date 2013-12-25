@@ -15,7 +15,7 @@ import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.TreeElement;
 import com.intellij.util.ProcessingContext;
 import org.jetbrains.annotations.NotNull;
-import requirejs.properties.RequirejsSettings;
+import requirejs.settings.RequirejsSettingsPage;
 
 import java.util.HashMap;
 
@@ -37,7 +37,7 @@ public class RequirejsPsiReferenceProvider extends PsiReferenceProvider {
         }
 
         PropertiesComponent properties = PropertiesComponent.getInstance(project);
-        String webDirPrefString = properties.getValue(RequirejsSettings.REQUIREJS_WEB_PATH_PROPERTY_NAME, RequirejsSettings.DEFAULT_WEB_PATH);
+        String webDirPrefString = properties.getValue(RequirejsSettingsPage.REQUIREJS_WEB_PATH_PROPERTY_NAME, RequirejsSettingsPage.DEFAULT_WEB_PATH);
         VirtualFile webDir = project.getBaseDir().findFileByRelativePath(webDirPrefString);
 
         if (webDir == null) {
@@ -49,8 +49,8 @@ public class RequirejsPsiReferenceProvider extends PsiReferenceProvider {
             VirtualFile mainJsVirtualFile = webDir
                     .findFileByRelativePath(
                             properties.getValue(
-                                    RequirejsSettings.REQUIREJS_MAIN_JS_FILE_PATH_PROPERTY_NAME,
-                                    RequirejsSettings.DEFAULT_REQUIREJS_MAIN_JS_FILE_PATH
+                                    RequirejsSettingsPage.REQUIREJS_MAIN_JS_FILE_PATH_PROPERTY_NAME,
+                                    RequirejsSettingsPage.DEFAULT_REQUIREJS_MAIN_JS_FILE_PATH
                             )
                     );
             if (null == mainJsVirtualFile) {
@@ -94,7 +94,7 @@ public class RequirejsPsiReferenceProvider extends PsiReferenceProvider {
             if (prevEl.getChildren().length > 1) {
                 String requireFunctionName = PropertiesComponent
                         .getInstance(element.getProject())
-                        .getValue(RequirejsSettings.REQUIREJS_FUNCTION_NAME_PROPERTY_NAME, RequirejsSettings.DEFAULT_REQUIREJS_FUNCTION_NAME);
+                        .getValue(RequirejsSettingsPage.REQUIREJS_FUNCTION_NAME_PROPERTY_NAME, RequirejsSettingsPage.DEFAULT_REQUIREJS_FUNCTION_NAME);
                 if (prevEl.getChildren()[0].getText().toLowerCase().equals(requireFunctionName)) {
                     return true;
                 }
@@ -121,7 +121,7 @@ public class RequirejsPsiReferenceProvider extends PsiReferenceProvider {
             try {
                 String requirejsFunctionName = PropertiesComponent
                         .getInstance(project)
-                        .getValue(RequirejsSettings.REQUIREJS_FUNCTION_NAME_PROPERTY_NAME, RequirejsSettings.DEFAULT_REQUIREJS_FUNCTION_NAME);
+                        .getValue(RequirejsSettingsPage.REQUIREJS_FUNCTION_NAME_PROPERTY_NAME, RequirejsSettingsPage.DEFAULT_REQUIREJS_FUNCTION_NAME);
                 if (node.getText().equals(requirejsFunctionName)) {
                     list.putAll(
                             parseRequirejsConfig(
@@ -163,7 +163,7 @@ public class RequirejsPsiReferenceProvider extends PsiReferenceProvider {
                                 .findChildByType(JSElementTypes.LITERAL_EXPRESSION)
                                 .getText().replace("\"", "").replace("'","");
                         baseUrl = propertiesComponent
-                                .getValue(RequirejsSettings.REQUIREJS_WEB_PATH_PROPERTY_NAME, RequirejsSettings.DEFAULT_WEB_PATH)
+                                .getValue(RequirejsSettingsPage.REQUIREJS_WEB_PATH_PROPERTY_NAME, RequirejsSettingsPage.DEFAULT_WEB_PATH)
                                 .concat(baseUrl);
                         requirejsBasePath = project
                                 .getBaseDir()

@@ -1,11 +1,8 @@
 package requirejs;
 
 import com.intellij.codeInsight.completion.CompletionType;
-import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.editor.LogicalPosition;
 import com.intellij.psi.PsiElement;
-import com.intellij.testFramework.fixtures.CodeInsightFixtureTestCase;
-import requirejs.properties.RequirejsSettings;
 
 import java.util.Arrays;
 import java.util.List;

@@ -1,14 +1,10 @@
 package requirejs;
 
-import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.lang.javascript.psi.JSFile;
 import com.intellij.openapi.editor.LogicalPosition;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.impl.source.resolve.reference.impl.PsiMultiReference;
-import com.intellij.testFramework.fixtures.CodeInsightFixtureTestCase;
-import requirejs.properties.RequirejsSettings;
 
 public class ReferenceTest extends RequirejsTestCase {
     @Override
