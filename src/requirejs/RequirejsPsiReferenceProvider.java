@@ -16,13 +16,14 @@ import com.intellij.psi.impl.source.tree.TreeElement;
 import com.intellij.util.ProcessingContext;
 import org.jetbrains.annotations.NotNull;
 import requirejs.settings.RequirejsSettingsPage;
+import requirejs.settings.Settings;
 
 import java.util.HashMap;
 
 public class RequirejsPsiReferenceProvider extends PsiReferenceProvider {
 
     protected Project project;
-    PropertiesComponent propertiesComponent;
+    public Settings settings;
     public static VirtualFile requirejsBasePath;
     public static HashMap<String, VirtualFile> requirejsConfigAliasesMap = new HashMap<String, VirtualFile>();
 
@@ -33,11 +34,11 @@ public class RequirejsPsiReferenceProvider extends PsiReferenceProvider {
     public PsiReference[] getReferencesByElement(@NotNull PsiElement psiElement, @NotNull ProcessingContext processingContext) {
         if (project == null || project.isDisposed()) {
             project = psiElement.getProject();
-            propertiesComponent = PropertiesComponent.getInstance(project);
+            settings = Settings.getInstance(project);
         }
 
         PropertiesComponent properties = PropertiesComponent.getInstance(project);
-        String webDirPrefString = properties.getValue(RequirejsSettingsPage.REQUIREJS_WEB_PATH_PROPERTY_NAME, RequirejsSettingsPage.DEFAULT_WEB_PATH);
+        String webDirPrefString = settings.webPath;
         VirtualFile webDir = project.getBaseDir().findFileByRelativePath(webDirPrefString);
 
         if (webDir == null) {
@@ -48,10 +49,7 @@ public class RequirejsPsiReferenceProvider extends PsiReferenceProvider {
         if (requirejsConfigAliasesMap.size() == 0) {
             VirtualFile mainJsVirtualFile = webDir
                     .findFileByRelativePath(
-                            properties.getValue(
-                                    RequirejsSettingsPage.REQUIREJS_MAIN_JS_FILE_PATH_PROPERTY_NAME,
-                                    RequirejsSettingsPage.DEFAULT_REQUIREJS_MAIN_JS_FILE_PATH
-                            )
+                            settings.mainJsPath
                     );
             if (null == mainJsVirtualFile) {
                 this.showInfoNotification("Config file not found");
@@ -92,9 +90,9 @@ public class RequirejsPsiReferenceProvider extends PsiReferenceProvider {
 
         if (prevEl instanceof JSCallExpression) {
             if (prevEl.getChildren().length > 1) {
-                String requireFunctionName = PropertiesComponent
+                String requireFunctionName = Settings
                         .getInstance(element.getProject())
-                        .getValue(RequirejsSettingsPage.REQUIREJS_FUNCTION_NAME_PROPERTY_NAME, RequirejsSettingsPage.DEFAULT_REQUIREJS_FUNCTION_NAME);
+                        .requireFunctionName;
                 if (prevEl.getChildren()[0].getText().toLowerCase().equals(requireFunctionName)) {
                     return true;
                 }
@@ -119,9 +117,9 @@ public class RequirejsPsiReferenceProvider extends PsiReferenceProvider {
 
         if (node.getElementType() == JSTokenTypes.IDENTIFIER) {
             try {
-                String requirejsFunctionName = PropertiesComponent
+                String requirejsFunctionName = Settings
                         .getInstance(project)
-                        .getValue(RequirejsSettingsPage.REQUIREJS_FUNCTION_NAME_PROPERTY_NAME, RequirejsSettingsPage.DEFAULT_REQUIREJS_FUNCTION_NAME);
+                        .requireFunctionName;
                 if (node.getText().equals(requirejsFunctionName)) {
                     list.putAll(
                             parseRequirejsConfig(
@@ -162,8 +160,8 @@ public class RequirejsPsiReferenceProvider extends PsiReferenceProvider {
                         baseUrl = node
                                 .findChildByType(JSElementTypes.LITERAL_EXPRESSION)
                                 .getText().replace("\"", "").replace("'","");
-                        baseUrl = propertiesComponent
-                                .getValue(RequirejsSettingsPage.REQUIREJS_WEB_PATH_PROPERTY_NAME, RequirejsSettingsPage.DEFAULT_WEB_PATH)
+                        baseUrl = settings
+                                .webPath
                                 .concat(baseUrl);
                         requirejsBasePath = project
                                 .getBaseDir()

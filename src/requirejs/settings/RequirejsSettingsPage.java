@@ -11,15 +11,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 
 public class RequirejsSettingsPage implements Configurable {
-    public static final String REQUIREJS_WEB_PATH_PROPERTY_NAME = "web_dir";
-    public static final String REQUIREJS_FUNCTION_NAME_PROPERTY_NAME = "requirejs_function_name";
-    public static final String REQUIREJS_MAIN_JS_FILE_PATH_PROPERTY_NAME = "requirejs_main_js_file_path";
-    public static final String REQUIREJS_ENABLE_PLUGIN_PROPERTY_NAME = "requirejs_enable_plugin";
-    public static final String DEFAULT_REQUIREJS_FUNCTION_NAME = "require";
-    public static final String DEFAULT_WEB_PATH = "webfront/web";
-    public static final String DEFAULT_REQUIREJS_MAIN_JS_FILE_PATH = "main.js";
-    public static final Boolean DEFAULT_REQUIREJS_ENABLE = true;
-
     protected Project project;
     
     private JCheckBox enablePlugin;
