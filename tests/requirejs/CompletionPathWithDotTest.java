@@ -2,6 +2,9 @@ package requirejs;
 
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.openapi.editor.LogicalPosition;
+import com.intellij.psi.PsiFile;
+import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl;
+import requirejs.settings.Settings;
 
 import java.util.Arrays;
 import java.util.List;
@@ -104,5 +107,41 @@ public class CompletionPathWithDotTest extends RequirejsTestCase
                 )
         );
         assertEquals(1, strings.size());
+    }
+
+    public void testFileOnRootProjectDir()
+    {
+        String projectTmpPath = getProject()
+                .getBaseDir()
+                .getChildren()[0]
+                .getName();
+
+        Settings.getInstance(getProject()).webPath = "";
+        PsiFile fileOnRoot = myFixture.addFileToProject("../fileOnRootDir.js", "define(function(require) {\n" +
+                "    var testCompletion = require('./');\n" +
+                "})");
+        ((CodeInsightTestFixtureImpl) myFixture).openFileInEditor(fileOnRoot.getVirtualFile());
+
+
+
+        myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(1, 36));
+        myFixture.complete(CompletionType.BASIC, 1);
+        List<String> strings = myFixture.getLookupElementStrings();
+        assert strings != null;
+        assertTrue(
+                strings.containsAll(
+                        Arrays.asList(
+                                "./fileOnRootDir",
+                                "./" + projectTmpPath + "/public/blocks/block",
+                                "./" + projectTmpPath + "/public/blocks/childWebPathFile",
+                                "./" + projectTmpPath + "/public/blocks/fileWithDotPath",
+                                "./" + projectTmpPath + "/public/blocks/fileWithTwoDotPath",
+                                "./" + projectTmpPath + "/public/blocks/childBlocks/childBlock",
+                                "./" + projectTmpPath + "/public/main",
+                                "./" + projectTmpPath + "/public/rootWebPathFile"
+                        )
+                )
+        );
+        assertEquals(8, strings.size());
     }
 }

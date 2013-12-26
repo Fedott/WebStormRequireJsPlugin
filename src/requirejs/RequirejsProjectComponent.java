@@ -46,7 +46,7 @@ public class RequirejsProjectComponent implements ProjectComponent
 
     @Override
     public void initComponent() {
-
+        validateSettings();
     }
 
     @Override
@@ -69,6 +69,9 @@ public class RequirejsProjectComponent implements ProjectComponent
     }
 
     public boolean isSettingsValid(){
+        if (!settings.getVersion().equals(settingValidVersion)) {
+            validateSettings();
+        }
         return settingValidStatus;
     }
 
@@ -76,6 +79,7 @@ public class RequirejsProjectComponent implements ProjectComponent
     {
         if (null == getWebDir()) {
             showErrorConfigNotification("Web path not found");
+            getLogger().debug("Web path not found");
             settingValidStatus = false;
             return false;
         }
@@ -91,6 +95,9 @@ public class RequirejsProjectComponent implements ProjectComponent
     }
 
     public VirtualFile getWebDir() {
+        if (settings.webPath.equals("")) {
+            return project.getBaseDir();
+        }
         return project.getBaseDir().findFileByRelativePath(settings.webPath);
     }
 

@@ -169,17 +169,24 @@ public class RequirejsReference implements PsiReference {
                 .getVirtualFile()
                 .getParent()
                 .getPath()
-                .replace(getWebDir().getPath().concat("/"), "");
+                .replace(getWebDir().getPath(), "");
+        if (filePath.startsWith("/")) {
+            filePath = filePath.substring(1);
+        }
         
         if (valuePath.startsWith("./")) {
             oneDot = true;
-            try {
-                valuePath = valuePath
-                        .replaceFirst(
-                                ".",
-                                filePath
-                        );
-            } catch (NullPointerException ignored) {}
+            if (filePath.equals("")) {
+                valuePath = valuePath.substring(2);
+            } else {
+                try {
+                    valuePath = valuePath
+                            .replaceFirst(
+                                    ".",
+                                    filePath
+                            );
+                } catch (NullPointerException ignored) {}
+            }
         }
 
         if (valuePath.startsWith("..")) {
@@ -214,7 +221,11 @@ public class RequirejsReference implements PsiReference {
             if (file.startsWith(valuePath)) {
                 // Prepare file path
                 if (oneDot) {
-                    file = file.replaceFirst(filePath, ".");
+                    if (filePath.equals("")) {
+                        file = "./".concat(file);
+                    } else {
+                        file = file.replaceFirst(filePath, ".");
+                    }
                 }
 
                 if (doubleDotCount > 0) {
