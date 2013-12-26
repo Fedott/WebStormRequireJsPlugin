@@ -24,57 +24,20 @@ public class RequirejsPsiReferenceProvider extends PsiReferenceProvider {
 
     protected Project project;
     public Settings settings;
-    public static VirtualFile requirejsBasePath;
-    public static HashMap<String, VirtualFile> requirejsConfigAliasesMap = new HashMap<String, VirtualFile>();
-
-    public long lastShowNotification = 0;
 
     @NotNull
     @Override
     public PsiReference[] getReferencesByElement(@NotNull PsiElement psiElement, @NotNull ProcessingContext processingContext) {
-        if (project == null || project.isDisposed()) {
-            project = psiElement.getProject();
-            settings = Settings.getInstance(project);
-        }
+        RequirejsProjectComponent projectComponent = psiElement.getProject().getComponent(RequirejsProjectComponent.class);
 
-        PropertiesComponent properties = PropertiesComponent.getInstance(project);
-        String webDirPrefString = settings.webPath;
-        VirtualFile webDir = project.getBaseDir().findFileByRelativePath(webDirPrefString);
-
-        if (webDir == null) {
-            this.showInfoNotification("Web path not found");
+        if (!projectComponent.isEnabled()) {
             return PsiReference.EMPTY_ARRAY;
-        }
-
-        if (requirejsConfigAliasesMap.size() == 0) {
-            VirtualFile mainJsVirtualFile = webDir
-                    .findFileByRelativePath(
-                            settings.mainJsPath
-                    );
-            if (null == mainJsVirtualFile) {
-                this.showInfoNotification("Config file not found");
-            } else {
-                PsiFile mainJs = PsiManager
-                        .getInstance(project)
-                        .findFile(
-                                mainJsVirtualFile
-                        );
-                if (mainJs instanceof JSFileImpl) {
-                    if (((JSFileImpl) mainJs).getTreeElement() == null) {
-                        requirejsConfigAliasesMap = parseMainJsFile(((JSFileImpl) mainJs).calcTreeElement(), webDir);
-                    } else {
-                        requirejsConfigAliasesMap = parseMainJsFile(((JSFileImpl) mainJs).getTreeElement(), webDir);
-                    }
-                } else {
-                    this.showInfoNotification("Config file wrong format");
-                }
-            }
         }
 
         try {
             String path = psiElement.getText();
             if (isRequireCall(psiElement)) {
-                PsiReference ref = new RequirejsReference(psiElement, new TextRange(1, path.length() - 1), project, webDir);
+                PsiReference ref = new RequirejsReference(psiElement, new TextRange(1, path.length() - 1));
                 return new PsiReference[] {ref};
             }
         } catch (Exception ignored) {}
@@ -100,135 +63,6 @@ public class RequirejsPsiReferenceProvider extends PsiReferenceProvider {
         }
 
         return false;
-    }
-
-    public HashMap<String, VirtualFile> parseMainJsFile(TreeElement node, VirtualFile webDir) {
-        HashMap<String, VirtualFile> list = new HashMap<String, VirtualFile>();
-
-        TreeElement firstChild = node.getFirstChildNode();
-        if (firstChild != null) {
-            list.putAll(parseMainJsFile(firstChild, webDir));
-        }
-
-        TreeElement nextNode = node.getTreeNext();
-        if (nextNode != null) {
-            list.putAll(parseMainJsFile(nextNode, webDir));
-        }
-
-        if (node.getElementType() == JSTokenTypes.IDENTIFIER) {
-            try {
-                String requirejsFunctionName = Settings
-                        .getInstance(project)
-                        .requireFunctionName;
-                if (node.getText().equals(requirejsFunctionName)) {
-                    list.putAll(
-                            parseRequirejsConfig(
-                                    (TreeElement) node
-                                            .getTreeParent()
-                                            .getTreeNext()
-                                            .findChildByType(JSElementTypes.OBJECT_LITERAL_EXPRESSION)
-                                            .getFirstChildNode(),
-                                    webDir
-                            )
-                    );
-                }
-            } catch (NullPointerException ignored) {}
-        }
-
-        return list;
-    }
-
-    public HashMap<String, VirtualFile> parseRequirejsConfig(TreeElement node, VirtualFile webDir) {
-        HashMap<String, VirtualFile> list = new HashMap<String, VirtualFile>();
-        if (null == node) {
-            return list;
-        }
-
-        TreeElement next = node.getTreeNext();
-        if (null != next) {
-            list.putAll(parseRequirejsConfig(next, webDir));
-        }
-
-        try {
-            if (node.getElementType() == JSElementTypes.PROPERTY) {
-                TreeElement identifier = (TreeElement) node.findChildByType(JSTokenTypes.IDENTIFIER);
-                if (null != identifier) {
-                    String identifierName = identifier.getText();
-                    if (identifierName.equals("baseUrl")) {
-                        String baseUrl;
-
-                        baseUrl = node
-                                .findChildByType(JSElementTypes.LITERAL_EXPRESSION)
-                                .getText().replace("\"", "").replace("'","");
-                        baseUrl = settings
-                                .webPath
-                                .concat(baseUrl);
-                        requirejsBasePath = project
-                                .getBaseDir()
-                                .findFileByRelativePath(baseUrl);
-                    }
-                    if (identifierName.equals("paths")) {
-                        list.putAll(
-                                parseRequireJsPaths(
-                                        (TreeElement) node
-                                                .findChildByType(JSElementTypes.OBJECT_LITERAL_EXPRESSION)
-                                                .getFirstChildNode(),
-                                        webDir
-                                )
-                        );
-                    }
-                }
-            }
-        } catch (NullPointerException ignored) {}
-
-        return list;
-    }
-
-    protected HashMap<String, VirtualFile> parseRequireJsPaths(TreeElement node, VirtualFile webDir) {
-        HashMap<String, VirtualFile> list = new HashMap<String, VirtualFile>();
-        if (null == node) {
-            return list;
-        }
-
-        TreeElement next = node.getTreeNext();
-        if (null != next) {
-            list.putAll(parseRequireJsPaths(next, webDir));
-        }
-
-        if (node.getElementType() == JSElementTypes.PROPERTY) {
-            TreeElement path = (TreeElement) node.findChildByType(JSElementTypes.LITERAL_EXPRESSION);
-            TreeElement alias = (TreeElement) node.getFirstChildNode();
-            if (null != path && null != alias) {
-                String pathString = path.getText().replace("\"","").replace("'", "").concat(".js");
-                String aliasString = alias.getText().replace("\"","").replace("'", "").concat(".js");
-
-                VirtualFile pathVF = webDir.findFileByRelativePath(pathString);
-                if (null != pathVF) {
-                    list.put(aliasString, pathVF);
-                } else {
-                    pathVF = requirejsBasePath.findFileByRelativePath(pathString);
-                    if (null != pathVF) {
-                        list.put(aliasString, pathVF);
-                    }
-                }
-            }
-        }
-
-        return list;
-    }
-
-    public void showInfoNotification(String content) {
-        this.showInfoNotification(content, NotificationType.WARNING);
-    }
-
-    public void showInfoNotification(String content, NotificationType type) {
-        long currentTimestamp = System.currentTimeMillis();
-        if (currentTimestamp - lastShowNotification < 60000) {
-            return;
-        }
-        lastShowNotification = currentTimestamp;
-        Notification errorNotification = new Notification("Require.js plugin", "Require.js plugin", content, type);
-        Notifications.Bus.notify(errorNotification, this.project);
     }
 
 }

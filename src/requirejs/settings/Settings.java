@@ -5,6 +5,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import org.jetbrains.annotations.Nullable;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
 @State(
         name = "Settings",
         storages = {
@@ -45,5 +48,9 @@ public class Settings implements PersistentStateComponent<Settings>
     @Override
     public void loadState(Settings state) {
         XmlSerializerUtil.copyBean(state, this);
+    }
+
+    public String getVersion() {
+        return webPath.concat(mainJsPath);
     }
 }

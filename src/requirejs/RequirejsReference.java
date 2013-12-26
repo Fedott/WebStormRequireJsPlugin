@@ -20,14 +20,10 @@ import java.util.ArrayList;
 public class RequirejsReference implements PsiReference {
     PsiElement element;
     TextRange textRange;
-    Project project;
-    VirtualFile webDir;
 
-    public RequirejsReference(PsiElement element, TextRange textRange, Project project, VirtualFile webDir) {
+    public RequirejsReference(PsiElement element, TextRange textRange) {
         this.element = element;
         this.textRange = textRange;
-        this.project = project;
-        this.webDir = webDir;
     }
 
     @Override
@@ -35,9 +31,21 @@ public class RequirejsReference implements PsiReference {
         return this.element;
     }
 
+    protected VirtualFile getWebDir() {
+        return element.getProject().getComponent(RequirejsProjectComponent.class).getWebDir();
+    }
+
+    protected boolean isSettingsValid() {
+        return element.getProject().getComponent(RequirejsProjectComponent.class).isSettingsValid();
+    }
+
     @Nullable
     @Override
     public PsiElement resolve() {
+        if (!isSettingsValid()) {
+            return null;
+        }
+
         String path = element.getText();
         path = path.replace("'", "").replace("\"", "");
         if (path.startsWith("tpl!")) {
@@ -45,6 +53,8 @@ public class RequirejsReference implements PsiReference {
         } else {
             path = path.concat(".js");
         }
+
+        VirtualFile webDir = getWebDir();
 
         String filePath = element
                 .getContainingFile()
@@ -62,7 +72,7 @@ public class RequirejsReference implements PsiReference {
         VirtualFile targetFile = webDir.findFileByRelativePath(path);
 
         if (targetFile != null) {
-            return PsiManager.getInstance(project).findFile(targetFile);
+            return PsiManager.getInstance(element.getProject()).findFile(targetFile);
         }
 
         if (path.startsWith("..")) {
@@ -77,18 +87,18 @@ public class RequirejsReference implements PsiReference {
                         );
 
                         if (targetFile != null) {
-                            return PsiManager.getInstance(project).findFile(targetFile);
+                            return PsiManager.getInstance(element.getProject()).findFile(targetFile);
                         }
                     }
                 }
             }
         }
 
-        if (RequirejsPsiReferenceProvider.requirejsConfigAliasesMap.containsKey(path)) {
-            return PsiManager
-                    .getInstance(project)
-                    .findFile(RequirejsPsiReferenceProvider.requirejsConfigAliasesMap.get(path));
-        }
+//        if (RequirejsPsiReferenceProvider.requirejsConfigAliasesMap.containsKey(path)) {
+//            return PsiManager
+//                    .getInstance(element.getProject())
+//                    .findFile(RequirejsPsiReferenceProvider.requirejsConfigAliasesMap.get(path));
+//        }
 
         return null;
     }
@@ -106,9 +116,13 @@ public class RequirejsReference implements PsiReference {
     @NotNull
     @Override
     public Object[] getVariants() {
-        ArrayList<String> files = filterFiles(element);
-
         ArrayList<LookupElement> completionResultSet = new ArrayList<LookupElement>();
+
+        if (! isSettingsValid()) {
+            return completionResultSet.toArray();
+        }
+
+        ArrayList<String> files = filterFiles(element);
 
         for (String file : files) {
             completionResultSet.add(
@@ -132,7 +146,7 @@ public class RequirejsReference implements PsiReference {
                 if (children instanceof VirtualDirectoryImpl) {
                     files.addAll(getAllFilesInDirectory(children));
                 } else if (children instanceof VirtualFileImpl) {
-                    files.add(children.getPath().replace(webDir.getPath() + "/", ""));
+                    files.add(children.getPath().replace(getWebDir().getPath() + "/", ""));
                 }
             }
         }
@@ -155,7 +169,7 @@ public class RequirejsReference implements PsiReference {
                 .getVirtualFile()
                 .getParent()
                 .getPath()
-                .replace(webDir.getPath().concat("/"), "");
+                .replace(getWebDir().getPath().concat("/"), "");
         
         if (valuePath.startsWith("./")) {
             oneDot = true;
@@ -189,7 +203,7 @@ public class RequirejsReference implements PsiReference {
             }
         }
 
-        ArrayList<String> allFiles = getAllFilesInDirectory(webDir);
+        ArrayList<String> allFiles = getAllFilesInDirectory(getWebDir());
         ArrayList<String> trueFiles = new ArrayList<String>();
 
         String file;
