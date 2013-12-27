@@ -123,6 +123,7 @@ public class RequirejsReference implements PsiReference {
         }
 
         ArrayList<String> files = filterFiles(element);
+        files.addAll(getModules());
 
         for (String file : files) {
             completionResultSet.add(
@@ -135,6 +136,11 @@ public class RequirejsReference implements PsiReference {
         }
 
         return completionResultSet.toArray();
+    }
+
+    protected ArrayList<String> getModules()
+    {
+        return element.getProject().getComponent(RequirejsProjectComponent.class).getModulesNames();
     }
 
     protected ArrayList<String> getAllFilesInDirectory(VirtualFile directory) {
