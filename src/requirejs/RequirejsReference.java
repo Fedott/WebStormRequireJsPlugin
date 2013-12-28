@@ -2,14 +2,12 @@ package requirejs;
 
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.impl.VirtualDirectoryImpl;
 import com.intellij.openapi.vfs.newvfs.impl.VirtualFileImpl;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiReference;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NotNull;
@@ -46,61 +44,7 @@ public class RequirejsReference implements PsiReference {
             return null;
         }
 
-        String path = element.getText();
-        path = path.replace("'", "").replace("\"", "");
-        if (path.startsWith("tpl!")) {
-            path = path.replace("tpl!", "");
-        } else {
-            path = path.concat(".js");
-        }
-
-        VirtualFile webDir = getWebDir();
-
-        String filePath = element
-                .getContainingFile()
-                .getVirtualFile()
-                .getParent()
-                .getPath()
-                .replace(webDir.getPath().concat("/"), "");
-
-        if (path.startsWith("./")) {
-            path = path.replaceFirst(
-                    ".",
-                    filePath
-            );
-        }
-        VirtualFile targetFile = webDir.findFileByRelativePath(path);
-
-        if (targetFile != null) {
-            return PsiManager.getInstance(element.getProject()).findFile(targetFile);
-        }
-
-        if (path.startsWith("..")) {
-            Integer doubleDotCount = getDoubleDotCount(path);
-            String[] pathsOfPath = filePath.split("/");
-            if (pathsOfPath.length > 0) {
-                if (doubleDotCount > 0) {
-                    if (doubleDotCount <= pathsOfPath.length) {
-                        String pathOnDots = getNormalizedPath(doubleDotCount, pathsOfPath);
-                        targetFile = webDir.findFileByRelativePath(
-                                path.replace(StringUtil.repeat("../", doubleDotCount), pathOnDots.concat("/"))
-                        );
-
-                        if (targetFile != null) {
-                            return PsiManager.getInstance(element.getProject()).findFile(targetFile);
-                        }
-                    }
-                }
-            }
-        }
-
-//        if (RequirejsPsiReferenceProvider.requirejsConfigAliasesMap.containsKey(path)) {
-//            return PsiManager
-//                    .getInstance(element.getProject())
-//                    .findFile(RequirejsPsiReferenceProvider.requirejsConfigAliasesMap.get(path));
-//        }
-
-        return null;
+        return element.getProject().getComponent(RequirejsProjectComponent.class).requireResolve(element);
     }
 
     @Override

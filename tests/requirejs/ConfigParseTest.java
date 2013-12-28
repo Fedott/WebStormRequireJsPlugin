@@ -1,7 +1,11 @@
 package requirejs;
 
 import com.intellij.codeInsight.completion.CompletionType;
+import com.intellij.lang.javascript.psi.JSFile;
 import com.intellij.openapi.editor.LogicalPosition;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiReference;
+import com.intellij.psi.impl.source.resolve.reference.impl.PsiMultiReference;
 import requirejs.settings.Settings;
 
 import java.util.Arrays;
@@ -50,7 +54,7 @@ public class ConfigParseTest extends RequirejsTestCase
         );
         assertEquals(4, strings.size());
 
-        // moduleDepend
+        // moduleDepend2
         myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(2, 39));
         myFixture.complete(CompletionType.BASIC, 1);
         strings = myFixture.getLookupElementStrings();
@@ -65,6 +69,78 @@ public class ConfigParseTest extends RequirejsTestCase
                 )
         );
         assertEquals(3, strings.size());
+    }
+
+    public void testReference()
+    {
+        Settings.getInstance(getProject()).mainJsPath = "mainRequireJs.js";
+
+        PsiReference reference;
+        PsiElement referenceElement;
+
+        myFixture
+                .getEditor()
+                .getCaretModel()
+                .moveToLogicalPosition(new LogicalPosition(1, 38));
+        reference = myFixture.getReferenceAtCaretPosition();
+        assert (reference) != null;
+        reference = ((PsiMultiReference)reference).getReferences()[1];
+        assertTrue(reference instanceof RequirejsReference);
+        assertEquals("'module'", reference.getCanonicalText());
+        referenceElement = reference.resolve();
+        assertNull(referenceElement);
+
+        myFixture
+                .getEditor()
+                .getCaretModel()
+                .moveToLogicalPosition(new LogicalPosition(3, 51));
+        reference = myFixture.getReferenceAtCaretPosition();
+        assert (reference) != null;
+        reference = ((PsiMultiReference)reference).getReferences()[1];
+        assertTrue(reference instanceof RequirejsReference);
+        assertEquals("'moduleRelativeBaseUrlPath'", reference.getCanonicalText());
+        referenceElement = reference.resolve();
+        assertTrue(referenceElement instanceof JSFile);
+        assertEquals("childBlock.js", ((JSFile) referenceElement).getName());
+
+        myFixture
+                .getEditor()
+                .getCaretModel()
+                .moveToLogicalPosition(new LogicalPosition(4, 51));
+        reference = myFixture.getReferenceAtCaretPosition();
+        assert (reference) != null;
+        reference = ((PsiMultiReference)reference).getReferences()[1];
+        assertTrue(reference instanceof RequirejsReference);
+        assertEquals("'moduleAbsolutePath'", reference.getCanonicalText());
+        referenceElement = reference.resolve();
+        assertTrue(referenceElement instanceof JSFile);
+        assertEquals("block.js", ((JSFile) referenceElement).getName());
+
+        myFixture
+                .getEditor()
+                .getCaretModel()
+                .moveToLogicalPosition(new LogicalPosition(5, 51));
+        reference = myFixture.getReferenceAtCaretPosition();
+        assert (reference) != null;
+        reference = ((PsiMultiReference)reference).getReferences()[1];
+        assertTrue(reference instanceof RequirejsReference);
+        assertEquals("'moduleRelativeOneDotPath'", reference.getCanonicalText());
+        referenceElement = reference.resolve();
+        assertTrue(referenceElement instanceof JSFile);
+        assertEquals("block.js", ((JSFile) referenceElement).getName());
+
+        myFixture
+                .getEditor()
+                .getCaretModel()
+                .moveToLogicalPosition(new LogicalPosition(6, 51));
+        reference = myFixture.getReferenceAtCaretPosition();
+        assert (reference) != null;
+        reference = ((PsiMultiReference)reference).getReferences()[1];
+        assertTrue(reference instanceof RequirejsReference);
+        assertEquals("'moduleRelativeTwoDotPAth'", reference.getCanonicalText());
+        referenceElement = reference.resolve();
+        assertTrue(referenceElement instanceof JSFile);
+        assertEquals("rootWebPathFile.js", ((JSFile) referenceElement).getName());
     }
 
     public void testCompletionOtherConfigFile()

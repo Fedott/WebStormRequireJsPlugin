@@ -10,10 +10,11 @@ import com.intellij.notification.Notifications;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import com.intellij.psi.PsiReference;
 import com.intellij.psi.impl.source.tree.TreeElement;
 import org.jetbrains.annotations.NotNull;
 import requirejs.settings.Settings;
@@ -128,6 +129,17 @@ public class RequirejsProjectComponent implements ProjectComponent
         return modules;
     }
 
+    public VirtualFile getModuleVFile(String alias)
+    {
+        if (requirejsConfigModules == null) {
+            if (!parseRequirejsConfig()) {
+                return null;
+            }
+        }
+
+        return requirejsConfigModules.get(alias);
+    }
+
     protected boolean parseRequirejsConfig()
     {
         VirtualFile mainJsVirtualFile = getWebDir()
@@ -135,7 +147,7 @@ public class RequirejsProjectComponent implements ProjectComponent
                         settings.mainJsPath
                 );
         if (null == mainJsVirtualFile) {
-            this.showInfoNotification("Config file not found");
+            this.showErrorConfigNotification("Config file not found");
             return false;
         } else {
             PsiFile mainJs = PsiManager
@@ -150,7 +162,7 @@ public class RequirejsProjectComponent implements ProjectComponent
                     requirejsConfigModules = parseMainJsFile(((JSFileImpl) mainJs).getTreeElement());
                 }
             } else {
-                this.showInfoNotification("Config file wrong format");
+                this.showErrorConfigNotification("Config file wrong format");
                 return false;
             }
         }
@@ -272,7 +284,7 @@ public class RequirejsProjectComponent implements ProjectComponent
 
         if (node.getElementType() == JSElementTypes.PROPERTY) {
             TreeElement path = (TreeElement) node.findChildByType(JSElementTypes.LITERAL_EXPRESSION);
-            TreeElement alias = (TreeElement) node.getFirstChildNode();
+            TreeElement alias = node.getFirstChildNode();
             if (null != path && null != alias) {
                 String pathString = path.getText().replace("\"","").replace("'", "").concat(".js");
                 String aliasString = alias.getText().replace("\"","").replace("'", "");
@@ -290,5 +302,94 @@ public class RequirejsProjectComponent implements ProjectComponent
         }
 
         return list;
+    }
+
+    public PsiElement requireResolve(PsiElement element)
+    {
+        String pathOriginal = element.getText();
+        pathOriginal = pathOriginal.replace("'", "").replace("\"", "");
+        String path;
+        if (pathOriginal.startsWith("tpl!")) {
+            path = pathOriginal.replace("tpl!", "");
+        } else {
+            path = pathOriginal.concat(".js");
+        }
+
+        VirtualFile webDir = getWebDir();
+
+        String filePath = element
+                .getContainingFile()
+                .getVirtualFile()
+                .getParent()
+                .getPath()
+                .replace(webDir.getPath().concat("/"), "");
+
+        if (path.startsWith("./")) {
+            path = path.replaceFirst(
+                    ".",
+                    filePath
+            );
+        }
+        VirtualFile targetFile = webDir.findFileByRelativePath(path);
+
+        if (targetFile != null) {
+            return PsiManager.getInstance(element.getProject()).findFile(targetFile);
+        }
+
+        if (path.startsWith("..")) {
+            Integer doubleDotCount = getDoubleDotCount(path);
+            String[] pathsOfPath = filePath.split("/");
+            if (pathsOfPath.length > 0) {
+                if (doubleDotCount > 0) {
+                    if (doubleDotCount <= pathsOfPath.length) {
+                        String pathOnDots = getNormalizedPath(doubleDotCount, pathsOfPath);
+                        targetFile = webDir.findFileByRelativePath(
+                                path.replace(StringUtil.repeat("../", doubleDotCount), pathOnDots.concat("/"))
+                        );
+
+                        if (targetFile != null) {
+                            return PsiManager.getInstance(element.getProject()).findFile(targetFile);
+                        }
+                    }
+                }
+            }
+        }
+
+        VirtualFile module = getModuleVFile(pathOriginal);
+        if (null != module) {
+            return PsiManager
+                    .getInstance(element.getProject())
+                    .findFile(module);
+        }
+
+        return null;
+    }
+
+    protected Integer getDoubleDotCount(String valuePath) {
+        Integer doubleDotCount = (valuePath.length() - valuePath.replaceAll("\\.\\.", "").length()) / 2;
+
+        Boolean doubleDotCountTrues = false;
+
+        while (!doubleDotCountTrues && 0 != doubleDotCount) {
+            if (valuePath.startsWith(StringUtil.repeat("../", doubleDotCount))) {
+                doubleDotCountTrues = true;
+            } else if (valuePath.startsWith(StringUtil.repeat("../", doubleDotCount - 1) + "..")) {
+                doubleDotCountTrues = true;
+            } else {
+                doubleDotCount--;
+            }
+        }
+        return doubleDotCount;
+    }
+
+    protected String getNormalizedPath(Integer doubleDotCount, String[] pathsOfPath) {
+        StringBuilder newValuePath = new StringBuilder();
+        for (int i = 0; i < pathsOfPath.length - doubleDotCount; i++) {
+            if (0 != i) {
+                newValuePath.append("/");
+            }
+            newValuePath.append(pathsOfPath[i]);
+        }
+        return newValuePath.toString();
     }
 }
