@@ -239,6 +239,7 @@ public class CompletionTest extends RequirejsTestCase
     public void testCompletionWithBaseUrl()
     {
         List<String> strings;
+        PsiElement element;
 
         myFixture.configureByFiles("public/fileForTestBaseUrl.js", "public/mainWithBaseUrl.js");
 
@@ -258,29 +259,19 @@ public class CompletionTest extends RequirejsTestCase
         myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(2, 29));
         myFixture.complete(CompletionType.BASIC, 1);
         strings = myFixture.getLookupElementStrings();
-        assert strings != null;
-        assertTrue(
-                strings.containsAll(
-                        Arrays.asList(
-                                "block"
-                        )
-                )
-        );
-        assertEquals(1, strings.size());
+        assert strings == null;
+        element = myFixture.getFile().findElementAt(myFixture.getCaretOffset());
+        assert element != null;
+        assertEquals("'block'", element.getText());
 
         // 2
         myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(3, 34));
         myFixture.complete(CompletionType.BASIC, 1);
         strings = myFixture.getLookupElementStrings();
-        assert strings != null;
-        assertTrue(
-                strings.containsAll(
-                        Arrays.asList(
-                                "childBlocks/childBlock"
-                        )
-                )
-        );
-        assertEquals(1, strings.size());
+        assert strings == null;
+        element = myFixture.getFile().findElementAt(myFixture.getCaretOffset());
+        assert element != null;
+        assertEquals("'childBlocks/childBlock'", element.getText());
 
         // 3
         myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(4, 39));
@@ -295,20 +286,14 @@ public class CompletionTest extends RequirejsTestCase
                 )
         );
         assertEquals(1, strings.size());
-
         // 4
         myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(5, 41));
         myFixture.complete(CompletionType.BASIC, 1);
         strings = myFixture.getLookupElementStrings();
-        assert strings != null;
-        assertTrue(
-                strings.containsAll(
-                        Arrays.asList(
-                                "childBlocks/childBlock"
-                        )
-                )
-        );
-        assertEquals(1, strings.size());
+        assert strings == null;
+        element = myFixture.getFile().findElementAt(myFixture.getCaretOffset());
+        assert element != null;
+        assertEquals("'childBlocks/childBlock'", element.getText());
 
         // 5
         myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(6, 33));
