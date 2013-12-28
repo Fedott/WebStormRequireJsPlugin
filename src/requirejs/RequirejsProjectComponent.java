@@ -12,6 +12,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -306,53 +307,36 @@ public class RequirejsProjectComponent implements ProjectComponent
 
     public PsiElement requireResolve(PsiElement element)
     {
-        String pathOriginal = element.getText();
-        pathOriginal = pathOriginal.replace("'", "").replace("\"", "");
         String path;
-        if (pathOriginal.startsWith("tpl!")) {
-            path = pathOriginal.replace("tpl!", "");
-        } else {
-            path = pathOriginal.concat(".js");
+        String pathOriginal;
+        VirtualFile targetFile;
+
+        pathOriginal = element.getText().replace("'", "").replace("\"", "");
+        path = pathOriginal;
+        if (path.startsWith("tpl!")) {
+            path = path.replace("tpl!", "");
+        } else if (!path.endsWith(".js")) {
+            path = path.concat(".js");
+        }
+
+        if (path.startsWith("./") || path.startsWith("..")) {
+            PsiDirectory fileDirectory = element.getContainingFile().getContainingDirectory();
+            if (null != fileDirectory) {
+                targetFile = fileDirectory
+                        .getVirtualFile()
+                        .findFileByRelativePath(path);
+                if (null != targetFile) {
+                    return PsiManager.getInstance(element.getProject()).findFile(targetFile);
+                }
+            }
         }
 
         VirtualFile webDir = getWebDir();
 
-        String filePath = element
-                .getContainingFile()
-                .getVirtualFile()
-                .getParent()
-                .getPath()
-                .replace(webDir.getPath().concat("/"), "");
-
-        if (path.startsWith("./")) {
-            path = path.replaceFirst(
-                    ".",
-                    filePath
-            );
-        }
-        VirtualFile targetFile = webDir.findFileByRelativePath(path);
+        targetFile = webDir.findFileByRelativePath(path);
 
         if (targetFile != null) {
             return PsiManager.getInstance(element.getProject()).findFile(targetFile);
-        }
-
-        if (path.startsWith("..")) {
-            Integer doubleDotCount = getDoubleDotCount(path);
-            String[] pathsOfPath = filePath.split("/");
-            if (pathsOfPath.length > 0) {
-                if (doubleDotCount > 0) {
-                    if (doubleDotCount <= pathsOfPath.length) {
-                        String pathOnDots = getNormalizedPath(doubleDotCount, pathsOfPath);
-                        targetFile = webDir.findFileByRelativePath(
-                                path.replace(StringUtil.repeat("../", doubleDotCount), pathOnDots.concat("/"))
-                        );
-
-                        if (targetFile != null) {
-                            return PsiManager.getInstance(element.getProject()).findFile(targetFile);
-                        }
-                    }
-                }
-            }
         }
 
         VirtualFile module = getModuleVFile(pathOriginal);
@@ -363,33 +347,5 @@ public class RequirejsProjectComponent implements ProjectComponent
         }
 
         return null;
-    }
-
-    protected Integer getDoubleDotCount(String valuePath) {
-        Integer doubleDotCount = (valuePath.length() - valuePath.replaceAll("\\.\\.", "").length()) / 2;
-
-        Boolean doubleDotCountTrues = false;
-
-        while (!doubleDotCountTrues && 0 != doubleDotCount) {
-            if (valuePath.startsWith(StringUtil.repeat("../", doubleDotCount))) {
-                doubleDotCountTrues = true;
-            } else if (valuePath.startsWith(StringUtil.repeat("../", doubleDotCount - 1) + "..")) {
-                doubleDotCountTrues = true;
-            } else {
-                doubleDotCount--;
-            }
-        }
-        return doubleDotCount;
-    }
-
-    protected String getNormalizedPath(Integer doubleDotCount, String[] pathsOfPath) {
-        StringBuilder newValuePath = new StringBuilder();
-        for (int i = 0; i < pathsOfPath.length - doubleDotCount; i++) {
-            if (0 != i) {
-                newValuePath.append("/");
-            }
-            newValuePath.append(pathsOfPath[i]);
-        }
-        return newValuePath.toString();
     }
 }
