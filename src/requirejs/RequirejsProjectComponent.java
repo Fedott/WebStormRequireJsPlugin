@@ -348,39 +348,44 @@ public class RequirejsProjectComponent implements ProjectComponent
 
     public PsiElement requireResolve(PsiElement element)
     {
-        String path;
-        String pathOriginal;
+        String valuePath;
+        String value;
         VirtualFile targetFile;
 
-        pathOriginal = element.getText().replace("'", "").replace("\"", "");
-        path = pathOriginal;
-        if (path.startsWith("tpl!")) {
-            path = path.replace("tpl!", "");
-        } else if (!path.endsWith(".js")) {
-            path = path.concat(".js");
+        value = element.getText().replace("'", "").replace("\"", "");
+        valuePath = value;
+        if (valuePath.startsWith("tpl!")) {
+            valuePath = valuePath.replace("tpl!", "");
+        } else if (!valuePath.endsWith(".js")) {
+            valuePath = valuePath.concat(".js");
         }
 
-        if (path.startsWith("./") || path.startsWith("..")) {
+        if (valuePath.startsWith("/")) {
+            targetFile = getWebDir().findFileByRelativePath(valuePath);
+            if (null != targetFile) {
+                return PsiManager.getInstance(element.getProject()).findFile(targetFile);
+            } else {
+                return null;
+            }
+        } else if (valuePath.startsWith("./") || valuePath.startsWith("..")) {
             PsiDirectory fileDirectory = element.getContainingFile().getContainingDirectory();
             if (null != fileDirectory) {
                 targetFile = fileDirectory
                         .getVirtualFile()
-                        .findFileByRelativePath(path);
+                        .findFileByRelativePath(valuePath);
                 if (null != targetFile) {
                     return PsiManager.getInstance(element.getProject()).findFile(targetFile);
                 }
             }
         }
 
-        VirtualFile webDir = getWebDir();
-
-        targetFile = webDir.findFileByRelativePath(path);
+        targetFile = getBaseUrlPath().findFileByRelativePath(valuePath);
 
         if (targetFile != null) {
             return PsiManager.getInstance(element.getProject()).findFile(targetFile);
         }
 
-        VirtualFile module = getModuleVFile(pathOriginal);
+        VirtualFile module = getModuleVFile(value);
         if (null != module) {
             return PsiManager
                     .getInstance(element.getProject())

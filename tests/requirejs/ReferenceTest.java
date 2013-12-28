@@ -5,6 +5,7 @@ import com.intellij.openapi.editor.LogicalPosition;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.impl.source.resolve.reference.impl.PsiMultiReference;
+import requirejs.settings.Settings;
 
 public class ReferenceTest extends RequirejsTestCase {
     @Override
@@ -120,5 +121,130 @@ public class ReferenceTest extends RequirejsTestCase {
         referenceElement = reference.resolve();
         assertTrue(referenceElement instanceof JSFile);
         assertEquals("childBlock.js", ((JSFile) referenceElement).getName());
+    }
+
+    public void testReferenceWithBaseUrl()
+    {
+        PsiReference reference;
+        PsiElement referenceElement;
+
+        myFixture.configureByFiles("public/fileForTestBaseUrlReference.js", "public/mainWithBaseUrl.js");
+        Settings.getInstance(getProject()).mainJsPath = "mainWithBaseUrl.js";
+
+        // referenceNotFound
+        myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(1, 40));
+        reference = myFixture.getReferenceAtCaretPosition();
+        assertTrue(reference instanceof RequirejsReference);
+        assertEquals("'app/as'", reference.getCanonicalText());
+        referenceElement = reference.resolve();
+        assertNull(referenceElement);
+
+        // 1
+        myFixture
+                .getEditor()
+                .getCaretModel()
+                .moveToLogicalPosition(new LogicalPosition(2, 33));
+        reference = myFixture.getReferenceAtCaretPosition();
+        assertTrue(reference instanceof RequirejsReference);
+        assertEquals("'blocks/block'", reference.getCanonicalText());
+        referenceElement = reference.resolve();
+        assertNull(referenceElement);
+
+        // 2
+        myFixture
+                .getEditor()
+                .getCaretModel()
+                .moveToLogicalPosition(new LogicalPosition(3, 33));
+        reference = myFixture.getReferenceAtCaretPosition();
+        assert null != reference;
+        reference = ((PsiMultiReference)reference).getReferences()[1];
+        assertTrue(reference instanceof RequirejsReference);
+        assertEquals("'block'", reference.getCanonicalText());
+        referenceElement = reference.resolve();
+        assertTrue(referenceElement instanceof JSFile);
+        assertEquals("block.js", ((JSFile) referenceElement).getName());
+
+        // 3
+        myFixture
+                .getEditor()
+                .getCaretModel()
+                .moveToLogicalPosition(new LogicalPosition(4, 33));
+        reference = myFixture.getReferenceAtCaretPosition();
+        assertTrue(reference instanceof RequirejsReference);
+        assertEquals("'childBlocks/childBlock'", reference.getCanonicalText());
+        referenceElement = reference.resolve();
+        assertTrue(referenceElement instanceof JSFile);
+        assertEquals("childBlock.js", ((JSFile) referenceElement).getName());
+
+        // 4
+        myFixture
+                .getEditor()
+                .getCaretModel()
+                .moveToLogicalPosition(new LogicalPosition(5, 33));
+        reference = myFixture.getReferenceAtCaretPosition();
+        assert null != reference;
+        reference = ((PsiMultiReference)reference).getReferences()[1];
+        assertTrue(reference instanceof RequirejsReference);
+        assertEquals("'childBlocks'", reference.getCanonicalText());
+        referenceElement = reference.resolve();
+        assertNull(referenceElement);
+
+        // 5
+        myFixture
+                .getEditor()
+                .getCaretModel()
+                .moveToLogicalPosition(new LogicalPosition(6, 33));
+        reference = myFixture.getReferenceAtCaretPosition();
+        assertTrue(reference instanceof RequirejsReference);
+        assertEquals("'/block'", reference.getCanonicalText());
+        referenceElement = reference.resolve();
+        assertNull(referenceElement);
+
+        // 6
+        myFixture
+                .getEditor()
+                .getCaretModel()
+                .moveToLogicalPosition(new LogicalPosition(7, 33));
+        reference = myFixture.getReferenceAtCaretPosition();
+        assertTrue(reference instanceof RequirejsReference);
+        assertEquals("'/blocks/block'", reference.getCanonicalText());
+        referenceElement = reference.resolve();
+        assertTrue(referenceElement instanceof JSFile);
+        assertEquals("block.js", ((JSFile) referenceElement).getName());
+
+        // 7
+        myFixture
+                .getEditor()
+                .getCaretModel()
+                .moveToLogicalPosition(new LogicalPosition(8, 33));
+        reference = myFixture.getReferenceAtCaretPosition();
+        assertTrue(reference instanceof RequirejsReference);
+        assertEquals("'/childBlocks/childBlock'", reference.getCanonicalText());
+        referenceElement = reference.resolve();
+        assertNull(referenceElement);
+
+        // 8
+        myFixture
+                .getEditor()
+                .getCaretModel()
+                .moveToLogicalPosition(new LogicalPosition(9, 33));
+        reference = myFixture.getReferenceAtCaretPosition();
+        assertTrue(reference instanceof RequirejsReference);
+        assertEquals("'./blocks/block'", reference.getCanonicalText());
+        referenceElement = reference.resolve();
+        assertTrue(referenceElement instanceof JSFile);
+        assertEquals("block.js", ((JSFile) referenceElement).getName());
+
+        // 9
+        // TODO: Add check for parent root web directory
+//        myFixture
+//                .getEditor()
+//                .getCaretModel()
+//                .moveToLogicalPosition(new LogicalPosition(10, 33));
+//        reference = myFixture.getReferenceAtCaretPosition();
+//        assertTrue(reference instanceof RequirejsReference);
+//        assertEquals("'../public/blocks/block'", reference.getCanonicalText());
+//        referenceElement = reference.resolve();
+//        assertNull(referenceElement);
     }
 }
