@@ -286,6 +286,7 @@ public class CompletionTest extends RequirejsTestCase
                 )
         );
         assertEquals(1, strings.size());
+
         // 4
         myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(5, 41));
         myFixture.complete(CompletionType.BASIC, 1);
@@ -360,5 +361,59 @@ public class CompletionTest extends RequirejsTestCase
                 strings.isEmpty()
         );
         assertEquals(0, strings.size());
+    }
+
+    public void testCompletionInDefine()
+    {
+        List<String> strings;
+
+        myFixture.configureByFiles("public/blocks/fileWithDefine.js");
+
+        // One
+        myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(0, 11));
+        myFixture.complete(CompletionType.BASIC, 1);
+        strings = myFixture.getLookupElementStrings();
+        assert strings != null;
+        assertTrue(
+                strings.containsAll(
+                        Arrays.asList(
+                                "blocks/block",
+                                "blocks/childWebPathFile",
+                                "blocks/fileWithDotPath",
+                                "blocks/fileWithTwoDotPath",
+                                "blocks/fileWithDefine",
+                                "blocks/childBlocks/childBlock"
+                        )
+                )
+        );
+        assertEquals(6, strings.size());
+
+        // Two
+        myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(0, 25));
+        myFixture.complete(CompletionType.BASIC, 1);
+        strings = myFixture.getLookupElementStrings();
+        assert strings != null;
+        assertTrue(
+                strings.containsAll(
+                        Arrays.asList(
+                                "/blocks/block"
+                        )
+                )
+        );
+        assertEquals(1, strings.size());
+
+        // Tree
+        myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(0, 37));
+        myFixture.complete(CompletionType.BASIC, 1);
+        strings = myFixture.getLookupElementStrings();
+        assert strings != null;
+        assertTrue(
+                strings.containsAll(
+                        Arrays.asList(
+                                "blocks/block"
+                        )
+                )
+        );
+        assertEquals(1, strings.size());
     }
 }

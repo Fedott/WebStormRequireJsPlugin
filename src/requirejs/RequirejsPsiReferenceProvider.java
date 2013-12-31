@@ -1,24 +1,17 @@
 package requirejs;
 
-import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.lang.javascript.JSElementTypes;
-import com.intellij.lang.javascript.JSTokenTypes;
+import com.intellij.lang.javascript.psi.JSArgumentList;
+import com.intellij.lang.javascript.psi.JSArrayLiteralExpression;
 import com.intellij.lang.javascript.psi.JSCallExpression;
-import com.intellij.lang.javascript.psi.impl.JSFileImpl;
-import com.intellij.notification.Notification;
-import com.intellij.notification.NotificationType;
-import com.intellij.notification.Notifications;
+import com.intellij.lang.javascript.psi.JSReferenceExpression;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
-import com.intellij.psi.impl.source.tree.TreeElement;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiReference;
+import com.intellij.psi.PsiReferenceProvider;
 import com.intellij.util.ProcessingContext;
 import org.jetbrains.annotations.NotNull;
-import requirejs.settings.RequirejsSettingsPage;
 import requirejs.settings.Settings;
-
-import java.util.HashMap;
 
 public class RequirejsPsiReferenceProvider extends PsiReferenceProvider {
 
@@ -34,18 +27,16 @@ public class RequirejsPsiReferenceProvider extends PsiReferenceProvider {
             return PsiReference.EMPTY_ARRAY;
         }
 
-        try {
-            String path = psiElement.getText();
-            if (isRequireCall(psiElement)) {
-                PsiReference ref = new RequirejsReference(psiElement, new TextRange(1, path.length() - 1));
-                return new PsiReference[] {ref};
-            }
-        } catch (Exception ignored) {}
+        String path = psiElement.getText();
+        if (isRequireCall(psiElement) || isDefineFirstCollection(psiElement)) {
+            PsiReference ref = new RequirejsReference(psiElement, new TextRange(1, path.length() - 1));
+            return new PsiReference[] {ref};
+        }
 
         return new PsiReference[0];
     }
 
-    public static boolean isRequireCall(PsiElement element) {
+    public boolean isRequireCall(PsiElement element) {
         PsiElement prevEl = element.getParent();
         if (prevEl != null) {
             prevEl = prevEl.getParent();
@@ -65,4 +56,20 @@ public class RequirejsPsiReferenceProvider extends PsiReferenceProvider {
         return false;
     }
 
+    public boolean isDefineFirstCollection(PsiElement element) {
+        PsiElement jsArrayLiteral = element.getParent();
+        if (null != jsArrayLiteral && jsArrayLiteral instanceof JSArrayLiteralExpression) {
+            PsiElement jsArgumentList = jsArrayLiteral.getParent();
+            if (null != jsArgumentList && jsArgumentList instanceof JSArgumentList) {
+                PsiElement jsReferenceExpression = jsArgumentList.getPrevSibling();
+                if (null != jsReferenceExpression && jsReferenceExpression instanceof JSReferenceExpression) {
+                    if (jsReferenceExpression.getText().equals("define")) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
 }
