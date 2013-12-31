@@ -247,4 +247,54 @@ public class ReferenceTest extends RequirejsTestCase {
 //        referenceElement = reference.resolve();
 //        assertNull(referenceElement);
     }
+
+    public void testCompletionInDefine()
+    {
+        myFixture.configureByFiles("public/blocks/fileWithDefine.js");
+
+        PsiReference reference;
+        PsiElement referenceElement;
+
+        // 1
+        myFixture
+                .getEditor()
+                .getCaretModel()
+                .moveToLogicalPosition(new LogicalPosition(5, 18));
+        reference = myFixture.getReferenceAtCaretPosition();
+        assert null != reference;
+        reference = ((PsiMultiReference)reference).getReferences()[1];
+        assertTrue(reference instanceof RequirejsReference);
+        assertEquals("'blocks/block'", reference.getCanonicalText());
+        referenceElement = reference.resolve();
+        assertTrue(referenceElement instanceof JSFile);
+        assertEquals("block.js", ((JSFile) referenceElement).getName());
+
+        // 2
+        myFixture
+                .getEditor()
+                .getCaretModel()
+                .moveToLogicalPosition(new LogicalPosition(5, 33));
+        reference = myFixture.getReferenceAtCaretPosition();
+        assert null != reference;
+        reference = ((PsiMultiReference)reference).getReferences()[1];
+        assertTrue(reference instanceof RequirejsReference);
+        assertEquals("'/blocks/block'", reference.getCanonicalText());
+        referenceElement = reference.resolve();
+        assertTrue(referenceElement instanceof JSFile);
+        assertEquals("block.js", ((JSFile) referenceElement).getName());
+
+        // 3
+        myFixture
+                .getEditor()
+                .getCaretModel()
+                .moveToLogicalPosition(new LogicalPosition(5, 51));
+        reference = myFixture.getReferenceAtCaretPosition();
+        assert null != reference;
+        reference = ((PsiMultiReference)reference).getReferences()[1];
+        assertTrue(reference instanceof RequirejsReference);
+        assertEquals("'./blocks/block'", reference.getCanonicalText());
+        referenceElement = reference.resolve();
+        assertTrue(referenceElement instanceof JSFile);
+        assertEquals("block.js", ((JSFile) referenceElement).getName());
+    }
 }
