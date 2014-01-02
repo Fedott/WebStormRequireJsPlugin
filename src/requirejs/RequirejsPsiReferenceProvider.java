@@ -44,9 +44,7 @@ public class RequirejsPsiReferenceProvider extends PsiReferenceProvider {
 
         if (prevEl instanceof JSCallExpression) {
             if (prevEl.getChildren().length > 1) {
-                String requireFunctionName = Settings
-                        .getInstance(element.getProject())
-                        .requireFunctionName;
+                String requireFunctionName = Settings.REQUIREJS_REQUIRE_FUNCTION_NAME;
                 if (prevEl.getChildren()[0].getText().toLowerCase().equals(requireFunctionName)) {
                     return true;
                 }
@@ -63,7 +61,7 @@ public class RequirejsPsiReferenceProvider extends PsiReferenceProvider {
             if (null != jsArgumentList && jsArgumentList instanceof JSArgumentList) {
                 PsiElement jsReferenceExpression = jsArgumentList.getPrevSibling();
                 if (null != jsReferenceExpression && jsReferenceExpression instanceof JSReferenceExpression) {
-                    if (jsReferenceExpression.getText().equals("define")) {
+                    if (jsReferenceExpression.getText().equals(Settings.REQUIREJS_DEFINE_FUNCTION_NAME)) {
                         return true;
                     }
                 }

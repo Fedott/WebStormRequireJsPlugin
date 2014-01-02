@@ -27,7 +27,7 @@ public class EmptyWebPathTest extends RequirejsTestCase
 
     public void testEmptyWebPathCompletion()
     {
-        Settings.getInstance(getProject()).webPath = "";
+        Settings.getInstance(getProject()).publicPath = "";
         List<String> strings;
 
         myFixture.configureByFile("parentWebPathFile.js");

@@ -35,7 +35,7 @@ public class ConfigParseTest extends RequirejsTestCase
 
     public void testCompletion()
     {
-        Settings.getInstance(getProject()).mainJsPath = "mainRequireJs.js";
+        Settings.getInstance(getProject()).configFilePath = "mainRequireJs.js";
 
         // moduleDepend
         myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(1, 38));
@@ -73,7 +73,7 @@ public class ConfigParseTest extends RequirejsTestCase
 
     public void testReference()
     {
-        Settings.getInstance(getProject()).mainJsPath = "mainRequireJs.js";
+        Settings.getInstance(getProject()).configFilePath = "mainRequireJs.js";
 
         PsiReference reference;
         PsiElement referenceElement;
@@ -145,7 +145,7 @@ public class ConfigParseTest extends RequirejsTestCase
 
     public void testCompletionOtherConfigFile()
     {
-        Settings.getInstance(getProject()).mainJsPath = "mainRequire.js";
+        Settings.getInstance(getProject()).configFilePath = "mainRequire.js";
 
         // moduleDepend
         myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(1, 38));

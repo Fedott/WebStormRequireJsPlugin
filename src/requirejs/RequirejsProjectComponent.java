@@ -104,14 +104,10 @@ public class RequirejsProjectComponent implements ProjectComponent
     }
 
     public VirtualFile getWebDir() {
-        if (settings.webPath.equals("")) {
+        if (settings.publicPath.equals("")) {
             return project.getBaseDir();
         }
-        return project.getBaseDir().findFileByRelativePath(settings.webPath);
-    }
-
-    public void showInfoNotification(String content) {
-        this.showInfoNotification(content, NotificationType.WARNING);
+        return project.getBaseDir().findFileByRelativePath(settings.publicPath);
     }
 
     public void showInfoNotification(String content, NotificationType type) {
@@ -170,7 +166,7 @@ public class RequirejsProjectComponent implements ProjectComponent
     {
         VirtualFile mainJsVirtualFile = getWebDir()
                 .findFileByRelativePath(
-                        settings.mainJsPath
+                        settings.configFilePath
                 );
         if (null == mainJsVirtualFile) {
             this.showErrorConfigNotification("Config file not found");
@@ -212,13 +208,12 @@ public class RequirejsProjectComponent implements ProjectComponent
         }
 
         if (node.getElementType() == JSTokenTypes.IDENTIFIER) {
-            String requirejsFunctionName = Settings
-                    .getInstance(project)
-                    .requireFunctionName;
+            String requirejsFunctionName = Settings.REQUIREJS_REQUIRE_FUNCTION_NAME;
             if (node.getText().equals(requirejsFunctionName)) {
                 TreeElement treeParent = node.getTreeParent();
                 findAndParseConfig(list, treeParent);
             }
+            // TODO: Change to array list contains ("requirejs", "require", ...)
             if (node.getText().equals("requirejs")) {
                 TreeElement treeParent = node.getTreeParent();
                 if (null != treeParent) {
@@ -305,7 +300,7 @@ public class RequirejsProjectComponent implements ProjectComponent
         }
         requirejsBaseUrl = baseUrl;
         baseUrl = settings
-                .webPath
+                .publicPath
                 .concat("/")
                 .concat(baseUrl);
         requirejsBaseUrlPath = project

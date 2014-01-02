@@ -116,7 +116,7 @@ public class CompletionPathWithDotTest extends RequirejsTestCase
                 .getChildren()[0]
                 .getName();
 
-        Settings.getInstance(getProject()).webPath = "";
+        Settings.getInstance(getProject()).publicPath = "";
         PsiFile fileOnRoot = myFixture.addFileToProject("../fileOnRootDir.js", "define(function(require) {\n" +
                 "    var testCompletion = require('./');\n" +
                 "})");

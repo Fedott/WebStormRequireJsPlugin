@@ -5,9 +5,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import org.jetbrains.annotations.Nullable;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-
 @State(
         name = "Settings",
         storages = {
@@ -18,15 +15,14 @@ import java.security.NoSuchAlgorithmException;
 
 public class Settings implements PersistentStateComponent<Settings>
 {
-    public static final String DEFAULT_REQUIREJS_FUNCTION_NAME = "require";
-    public static final String DEFAULT_WEB_PATH = "webfront/web";
-    public static final String DEFAULT_REQUIREJS_MAIN_JS_FILE_PATH = "main.js";
-    public static final Boolean DEFAULT_REQUIREJS_ENABLE = true;
-
-    public String requireFunctionName = DEFAULT_REQUIREJS_FUNCTION_NAME;
-    public String webPath = DEFAULT_WEB_PATH;
-    public String mainJsPath = DEFAULT_REQUIREJS_MAIN_JS_FILE_PATH;
-    public boolean pluginEnabled = DEFAULT_REQUIREJS_ENABLE;
+    public static final String REQUIREJS_REQUIRE_FUNCTION_NAME = "require";
+    public static final String REQUIREJS_DEFINE_FUNCTION_NAME = "define";
+    public static final String DEFAULT_PUBLIC_PATH = "public";
+    public static final String DEFAULT_CONFIG_FILE_PATH = "main.js";
+    public static final Boolean DEFAULT_PLUGIN_ENABLED = true;
+    public String publicPath = DEFAULT_PUBLIC_PATH;
+    public String configFilePath = DEFAULT_CONFIG_FILE_PATH;
+    public boolean pluginEnabled = DEFAULT_PLUGIN_ENABLED;
 
     protected Project project;
 
@@ -51,6 +47,6 @@ public class Settings implements PersistentStateComponent<Settings>
     }
 
     public String getVersion() {
-        return webPath.concat(mainJsPath);
+        return publicPath.concat(configFilePath);
     }
 }

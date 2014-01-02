@@ -243,7 +243,7 @@ public class CompletionTest extends RequirejsTestCase
 
         myFixture.configureByFiles("public/fileForTestBaseUrl.js", "public/mainWithBaseUrl.js");
 
-        Settings.getInstance(getProject()).mainJsPath = "mainWithBaseUrl.js";
+        Settings.getInstance(getProject()).configFilePath = "mainWithBaseUrl.js";
 
         // NotFound
         myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(1, 40));

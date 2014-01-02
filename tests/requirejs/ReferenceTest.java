@@ -129,7 +129,7 @@ public class ReferenceTest extends RequirejsTestCase {
         PsiElement referenceElement;
 
         myFixture.configureByFiles("public/fileForTestBaseUrlReference.js", "public/mainWithBaseUrl.js");
-        Settings.getInstance(getProject()).mainJsPath = "mainWithBaseUrl.js";
+        Settings.getInstance(getProject()).configFilePath = "mainWithBaseUrl.js";
 
         // referenceNotFound
         myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(1, 40));
