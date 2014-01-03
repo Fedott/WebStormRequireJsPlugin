@@ -13,7 +13,7 @@
           <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <text value="Enable"/>
+          <text value="&amp;Enable"/>
           <toolTipText value="To apply the settings, you must restart IDE"/>
         </properties>
       </component>
@@ -23,7 +23,7 @@
         </constraints>
         <properties>
           <labelFor value="6bca8"/>
-          <text value="Path to public directory"/>
+          <text value="Path to &amp;public directory"/>
           <toolTipText value="This directory pointed to by the web server."/>
         </properties>
       </component>
@@ -46,7 +46,7 @@
         </constraints>
         <properties>
           <labelFor value="7c589"/>
-          <text value="Require.js config file path"/>
+          <text value="Require.js &amp;config file path"/>
           <toolTipText value="Path to the file with the settings require.js, relatively public directory"/>
         </properties>
       </component>
