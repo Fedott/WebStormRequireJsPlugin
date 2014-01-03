@@ -17,9 +17,13 @@
 
   <change-notes><![CDATA[
       Version 0.10<br />
-        - Added tests for completion
-        - Refactor settings page
-        - Added enable\disable plugin
+        - Big refactoring. You plugin settings will be lost
+        - Refactor settings page <br />
+        - Fix bug "Already disposed"
+        - Added getting started section on readme
+        - Added enable\disable plugin <br />
+        - Added tests for completion <br />
+        - Added tests for reference <br />
       Version 0.9:<br />
         - Added reference for relative paths<br />
         - Show notification for wrong settings
@@ -49,7 +53,6 @@
   </application-components>
 
   <project-components>
-    <!-- Add your project components here -->
       <component>
           <implementation-class>requirejs.RequirejsProjectComponent</implementation-class>
       </component>
