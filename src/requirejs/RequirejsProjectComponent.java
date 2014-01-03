@@ -31,6 +31,7 @@ public class RequirejsProjectComponent implements ProjectComponent
     protected Settings settings;
     protected boolean settingValidStatus;
     protected String settingValidVersion;
+    protected String settingVersionLastShowNotification;
 
     final protected static Logger LOG = Logger.getInstance("Requirejs-Plugin");
     private VirtualFile requirejsBaseUrlPath;
@@ -80,6 +81,7 @@ public class RequirejsProjectComponent implements ProjectComponent
     public boolean isSettingsValid(){
         if (!settings.getVersion().equals(settingValidVersion)) {
             validateSettings();
+            settingValidVersion = settings.getVersion();
         }
         return settingValidStatus;
     }
@@ -87,8 +89,12 @@ public class RequirejsProjectComponent implements ProjectComponent
     public boolean validateSettings()
     {
         if (null == getWebDir()) {
-            showErrorConfigNotification("Web path not found");
-            getLogger().debug("Web path not found");
+            showErrorConfigNotification(
+                    "Public directory not found. Path " +
+                            project.getBaseDir().getPath() + "/" + settings.publicPath +
+                            " not found in project"
+            );
+            getLogger().debug("Public directory not found");
             settingValidStatus = false;
             return false;
         }
@@ -98,7 +104,8 @@ public class RequirejsProjectComponent implements ProjectComponent
     }
 
     protected void showErrorConfigNotification(String content) {
-        if (!settings.getVersion().equals(settingValidVersion)) {
+        if (!settings.getVersion().equals(settingVersionLastShowNotification)) {
+            settingVersionLastShowNotification = settings.getVersion();
             showInfoNotification(content, NotificationType.ERROR);
         }
     }
@@ -169,7 +176,9 @@ public class RequirejsProjectComponent implements ProjectComponent
                         settings.configFilePath
                 );
         if (null == mainJsVirtualFile) {
-            this.showErrorConfigNotification("Config file not found");
+            this.showErrorConfigNotification("Config file not found. File " +
+                    settings.publicPath + "/" + settings.configFilePath +
+                    " not found in project");
             getLogger().debug("Config not found");
             return false;
         } else {

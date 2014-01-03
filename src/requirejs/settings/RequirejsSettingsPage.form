@@ -14,6 +14,7 @@
         </constraints>
         <properties>
           <text value="Enable"/>
+          <toolTipText value="To apply the settings, you must restart IDE"/>
         </properties>
       </component>
       <component id="db737" class="javax.swing.JLabel">
