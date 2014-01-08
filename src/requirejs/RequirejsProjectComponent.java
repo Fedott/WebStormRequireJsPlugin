@@ -407,7 +407,7 @@ public class RequirejsProjectComponent implements ProjectComponent
             } else {
                 return null;
             }
-        } else if (valuePath.startsWith("./") || valuePath.startsWith("..")) {
+        } else if (valuePath.startsWith(".")) {
             PsiDirectory fileDirectory = element.getContainingFile().getContainingDirectory();
             if (null != fileDirectory) {
                 targetFile = fileDirectory
@@ -430,6 +430,15 @@ public class RequirejsProjectComponent implements ProjectComponent
             return PsiManager
                     .getInstance(element.getProject())
                     .findFile(module);
+        }
+
+        for (Map.Entry<String, VirtualFile> entry : getConfigPaths().entrySet()) {
+            if (valuePath.startsWith(entry.getKey())) {
+                targetFile = entry.getValue().findFileByRelativePath(valuePath.replace(entry.getKey(), ""));
+                if (null != targetFile) {
+                    return PsiManager.getInstance(element.getProject()).findFile(targetFile);
+                }
+            }
         }
 
         return null;

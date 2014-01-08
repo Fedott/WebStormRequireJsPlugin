@@ -331,7 +331,7 @@ public class ReferenceTest extends RequirejsTestCase {
         assertReference(reference, "'pathForDirOneDotWithDir/kit'", "kit.js");
 
         // 6
-        reference = getReferenceForHumanPosition(6, 35);
+        reference = getReferenceForHumanPosition(7, 35);
         assertReference(reference, "'pathForNotFound'", null);
     }
 }
