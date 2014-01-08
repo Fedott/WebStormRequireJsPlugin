@@ -1,7 +1,11 @@
 package requirejs;
 
 import com.intellij.codeInsight.completion.CompletionType;
+import com.intellij.lang.javascript.psi.JSFile;
 import com.intellij.openapi.editor.LogicalPosition;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiReference;
+import com.intellij.psi.impl.source.resolve.reference.impl.PsiMultiReference;
 import com.intellij.testFramework.fixtures.CodeInsightFixtureTestCase;
 import requirejs.settings.Settings;
 
@@ -35,5 +39,39 @@ public abstract class RequirejsTestCase extends CodeInsightFixtureTestCase {
 
     protected List<String> getCompletionStringsForHumanPosition(int line, int column) {
         return getCompletionStrings(line - 1, column - 1);
+    }
+
+    protected PsiReference getReferenceForHumanPosition(int line, int column) {
+        return getReferenceForPosition(line - 1, column - 1);
+    }
+
+    protected PsiReference getReferenceForPosition(int line, int column) {
+        myFixture
+                .getEditor()
+                .getCaretModel()
+                .moveToLogicalPosition(new LogicalPosition(line, column));
+        return myFixture.getReferenceAtCaretPosition();
+    }
+
+    protected void assertReference(PsiReference reference, String expectedText, String expectedFileName) {
+        assertNotNull(reference);
+        if (reference instanceof PsiMultiReference) {
+            for (PsiReference ref : ((PsiMultiReference)reference).getReferences()) {
+                if (ref instanceof RequirejsReference) {
+                    reference = ref;
+                    break;
+                }
+            }
+        }
+
+        assertInstanceOf(reference, RequirejsReference.class);
+        assertEquals(expectedText, reference.getCanonicalText());
+        PsiElement referenceElement = reference.resolve();
+        if (null == expectedFileName) {
+            assertNull(referenceElement);
+        } else {
+            assertTrue(referenceElement instanceof JSFile);
+            assertEquals(expectedFileName, ((JSFile) referenceElement).getName());
+        }
     }
 }

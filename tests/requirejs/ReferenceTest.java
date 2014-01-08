@@ -297,4 +297,41 @@ public class ReferenceTest extends RequirejsTestCase {
         assertTrue(referenceElement instanceof JSFile);
         assertEquals("block.js", ((JSFile) referenceElement).getName());
     }
+
+    public void testCompletionWithConfigWithRelativePath()
+    {
+        myFixture.configureByFiles(
+                "public/fileForTestConfigWithRelativePathReference.js",
+                "public/sub/mainWithRelativePath.js",
+                "public/sub/kits/kit.js"
+        );
+
+        Settings.getInstance(getProject()).configFilePath = "sub/mainWithRelativePath.js";
+
+        PsiReference reference;
+
+        // 1
+        reference = getReferenceForHumanPosition(2, 35);
+        assertReference(reference, "'pathForBlock'", "block.js");
+
+        // 2
+        reference = getReferenceForHumanPosition(3, 35);
+        assertReference(reference, "'pathForDirectoryTwoDot/block'", "block.js");
+
+        // 3
+        reference = getReferenceForHumanPosition(4, 35);
+        assertReference(reference, "'pathForDirectoryOneDot/kits/kit'", "kit.js");
+
+        // 4
+        reference = getReferenceForHumanPosition(5, 35);
+        assertReference(reference, "'pathForKit'", "kit.js");
+
+        // 5
+        reference = getReferenceForHumanPosition(6, 35);
+        assertReference(reference, "'pathForDirOneDotWithDir/kit'", "kit.js");
+
+        // 6
+        reference = getReferenceForHumanPosition(6, 35);
+        assertReference(reference, "'pathForNotFound'", null);
+    }
 }

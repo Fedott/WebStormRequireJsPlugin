@@ -5,5 +5,6 @@ require({
         pathForDirectoryOneDot: '.',
         pathForKit: './kits/kit',
         pathForDirOneDotWithDir: './kits',
+        pathForNotFound: './notFound'
     }
 })
