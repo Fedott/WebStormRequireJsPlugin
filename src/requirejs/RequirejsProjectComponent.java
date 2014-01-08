@@ -24,6 +24,7 @@ import requirejs.settings.Settings;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 public class RequirejsProjectComponent implements ProjectComponent
 {
@@ -38,6 +39,7 @@ public class RequirejsProjectComponent implements ProjectComponent
     private String requirejsBaseUrl;
 
     protected HashMap<String, VirtualFile> requirejsConfigModules;
+    protected HashMap<String, VirtualFile> requirejsConfigPaths;
 
     public RequirejsProjectComponent(Project project) {
         this.project = project;
@@ -122,6 +124,16 @@ public class RequirejsProjectComponent implements ProjectComponent
         Notifications.Bus.notify(errorNotification, this.project);
     }
 
+    public HashMap<String, VirtualFile> getConfigPaths() {
+        if (requirejsConfigPaths == null) {
+            if (!parseRequirejsConfig()) {
+                return requirejsConfigPaths;
+            }
+        }
+
+        return requirejsConfigPaths;
+    }
+
     public ArrayList<String> getModulesNames()
     {
         ArrayList<String> modules = new ArrayList<String>();
@@ -188,10 +200,20 @@ public class RequirejsProjectComponent implements ProjectComponent
                             mainJsVirtualFile
                     );
             if (mainJs instanceof JSFileImpl) {
+                HashMap<String, VirtualFile> allConfigPaths;
                 if (((JSFileImpl) mainJs).getTreeElement() == null) {
-                    requirejsConfigModules = parseMainJsFile(((JSFileImpl) mainJs).calcTreeElement());
+                    allConfigPaths = parseMainJsFile(((JSFileImpl) mainJs).calcTreeElement());
                 } else {
-                    requirejsConfigModules = parseMainJsFile(((JSFileImpl) mainJs).getTreeElement());
+                    allConfigPaths = parseMainJsFile(((JSFileImpl) mainJs).getTreeElement());
+                }
+                requirejsConfigModules = new HashMap<String, VirtualFile>();
+                requirejsConfigPaths = new HashMap<String, VirtualFile>();
+                for (Map.Entry<String, VirtualFile> entry : allConfigPaths.entrySet()) {
+                    if (entry.getValue().isDirectory()) {
+                        requirejsConfigPaths.put(entry.getKey(), entry.getValue());
+                    } else {
+                        requirejsConfigModules.put(entry.getKey(), entry.getValue());
+                    }
                 }
             } else {
                 this.showErrorConfigNotification("Config file wrong format");
@@ -327,16 +349,30 @@ public class RequirejsProjectComponent implements ProjectComponent
             TreeElement path = (TreeElement) node.findChildByType(JSElementTypes.LITERAL_EXPRESSION);
             TreeElement alias = node.getFirstChildNode();
             if (null != path && null != alias) {
-                String pathString = path.getText().replace("\"","").replace("'", "").concat(".js");
+                String pathString = path.getText().replace("\"","").replace("'", "");
                 String aliasString = alias.getText().replace("\"","").replace("'", "");
 
-                VirtualFile pathVF = getWebDir().findFileByRelativePath(pathString);
-                if (null != pathVF) {
-                    list.put(aliasString, pathVF);
+                VirtualFile rootDirectory = null;
+                if (pathString.startsWith(".")) {
+                    PsiDirectory configFileDirectory = node.getPsi().getContainingFile().getContainingDirectory();
+                    if (null != configFileDirectory) {
+                        rootDirectory = configFileDirectory.getVirtualFile();
+                    }
+                } else if (pathString.startsWith("/")) {
+                    rootDirectory = getWebDir();
                 } else {
-                    pathVF = getBaseUrlPath().findFileByRelativePath(pathString);
-                    if (null != pathVF) {
-                        list.put(aliasString, pathVF);
+                    rootDirectory = getBaseUrlPath();
+                }
+
+                if (null != rootDirectory) {
+                    VirtualFile directoryVF = rootDirectory.findFileByRelativePath(pathString);
+                    if (null != directoryVF) {
+                        list.put(aliasString, directoryVF);
+                    } else {
+                        VirtualFile fileVF = rootDirectory.findFileByRelativePath(pathString.concat(".js"));
+                        if (null != fileVF) {
+                            list.put(aliasString, fileVF);
+                        }
                     }
                 }
             }
@@ -470,7 +506,8 @@ public class RequirejsProjectComponent implements ProjectComponent
             }
         }
 
-        ArrayList<String> allFiles = getAllFilesInDirectory(getWebDir());
+        ArrayList<String> allFiles = getAllFilesInDirectory(getWebDir(), getWebDir().getPath().concat("/"), "");
+        allFiles.addAll(getAllFilesForConfigPaths());
 
         if (!oneDot && 0 == doubleDotCount && !startSlash && !getBaseUrl().equals("")) {
             valuePath = getBaseUrl().concat("/").concat(valuePath);
@@ -544,20 +581,39 @@ public class RequirejsProjectComponent implements ProjectComponent
         return doubleDotCount;
     }
 
-    protected ArrayList<String> getAllFilesInDirectory(VirtualFile directory) {
+    protected ArrayList<String> getAllFilesInDirectory(VirtualFile directory, String target, String replacement) {
         ArrayList<String> files = new ArrayList<String>();
 
         VirtualFile[] childrens = directory.getChildren();
         if (childrens.length != 0) {
             for (VirtualFile children : childrens) {
                 if (children instanceof VirtualDirectoryImpl) {
-                    files.addAll(getAllFilesInDirectory(children));
+                    files.addAll(getAllFilesInDirectory(children, target, replacement));
                 } else if (children instanceof VirtualFileImpl) {
-                    files.add(children.getPath().replace(getWebDir().getPath() + "/", ""));
+                    files.add(children.getPath().replace(target, replacement));
                 }
             }
         }
 
         return files;
+    }
+
+    protected ArrayList<String> getAllFilesForConfigPaths() {
+        ArrayList<String> strings = new ArrayList<String>();
+
+        HashMap<String, VirtualFile> configPaths = getConfigPaths();
+        if (null != configPaths) {
+            for (Map.Entry<String, VirtualFile> entry : configPaths.entrySet()) {
+                strings.addAll(
+                        getAllFilesInDirectory(
+                                entry.getValue(),
+                                entry.getValue().getPath(),
+                                entry.getKey()
+                        )
+                );
+            }
+        }
+
+        return strings;
     }
 }

@@ -3,7 +3,7 @@ require({
     paths: {
         moduleRelativeBaseUrlPath: 'childBlocks/childBlock',
         moduleAbsolutePath: '/blocks/block',
-        moduleRelativeOneDotPath: './block',
+        moduleRelativeOneDotPath: './blocks/block',
         moduleRelativeTwoDotPAth: '../rootWebPathFile'
     }
 })

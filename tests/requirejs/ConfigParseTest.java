@@ -1,6 +1,5 @@
 package requirejs;
 
-import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.lang.javascript.psi.JSFile;
 import com.intellij.openapi.editor.LogicalPosition;
 import com.intellij.psi.PsiElement;
@@ -38,37 +37,19 @@ public class ConfigParseTest extends RequirejsTestCase
         Settings.getInstance(getProject()).configFilePath = "mainRequireJs.js";
 
         // moduleDepend
-        myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(1, 38));
-        myFixture.complete(CompletionType.BASIC, 1);
-        List<String> strings = myFixture.getLookupElementStrings();
-        assert strings != null;
-        assertTrue(
-                strings.containsAll(
-                        Arrays.asList(
-                                "moduleRelativeBaseUrlPath",
-                                "moduleAbsolutePath",
-                                "moduleRelativeOneDotPath",
-                                "moduleRelativeTwoDotPAth"
-                        )
-                )
-        );
-        assertEquals(4, strings.size());
+        List<String> strings = getCompletionStrings(1, 38);
+        assertCompletionList(Arrays.asList(
+                "moduleRelativeBaseUrlPath",
+                "moduleAbsolutePath",
+                "moduleRelativeOneDotPath"
+        ), strings);
 
         // moduleDepend2
-        myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(2, 39));
-        myFixture.complete(CompletionType.BASIC, 1);
-        strings = myFixture.getLookupElementStrings();
-        assert strings != null;
-        assertTrue(
-                strings.containsAll(
-                        Arrays.asList(
-                                "moduleRelativeBaseUrlPath",
-                                "moduleRelativeOneDotPath",
-                                "moduleRelativeTwoDotPAth"
-                        )
-                )
-        );
-        assertEquals(3, strings.size());
+        strings = getCompletionStrings(2, 39);
+        assertCompletionList(Arrays.asList(
+                "moduleRelativeBaseUrlPath",
+                "moduleRelativeOneDotPath"
+        ), strings);
     }
 
     public void testReference()
@@ -139,8 +120,7 @@ public class ConfigParseTest extends RequirejsTestCase
         assertTrue(reference instanceof RequirejsReference);
         assertEquals("'moduleRelativeTwoDotPAth'", reference.getCanonicalText());
         referenceElement = reference.resolve();
-        assertTrue(referenceElement instanceof JSFile);
-        assertEquals("rootWebPathFile.js", ((JSFile) referenceElement).getName());
+        assertNull(referenceElement);
     }
 
     public void testCompletionOtherConfigFile()
@@ -148,36 +128,18 @@ public class ConfigParseTest extends RequirejsTestCase
         Settings.getInstance(getProject()).configFilePath = "mainRequire.js";
 
         // moduleDepend
-        myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(1, 38));
-        myFixture.complete(CompletionType.BASIC, 1);
-        List<String> strings = myFixture.getLookupElementStrings();
-        assert strings != null;
-        assertTrue(
-                strings.containsAll(
-                        Arrays.asList(
-                                "moduleRelativeBaseUrlPath",
-                                "moduleAbsolutePath",
-                                "moduleRelativeOneDotPath",
-                                "moduleRelativeTwoDotPAth"
-                        )
-                )
-        );
-        assertEquals(4, strings.size());
+        List<String> strings = getCompletionStrings(1, 38);
+        assertCompletionList(Arrays.asList(
+                "moduleRelativeBaseUrlPath",
+                "moduleAbsolutePath",
+                "moduleRelativeOneDotPath"
+        ), strings);
 
-        // moduleDepend
-        myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(2, 39));
-        myFixture.complete(CompletionType.BASIC, 1);
-        strings = myFixture.getLookupElementStrings();
-        assert strings != null;
-        assertTrue(
-                strings.containsAll(
-                        Arrays.asList(
-                                "moduleRelativeBaseUrlPath",
-                                "moduleRelativeOneDotPath",
-                                "moduleRelativeTwoDotPAth"
-                        )
-                )
-        );
-        assertEquals(3, strings.size());
+        // moduleDepend2
+        strings = getCompletionStrings(2, 39);
+        assertCompletionList(Arrays.asList(
+                "moduleRelativeBaseUrlPath",
+                "moduleRelativeOneDotPath"
+        ), strings);
     }
 }

@@ -403,14 +403,21 @@ public class CompletionTest extends RequirejsTestCase
                 "public/sub/kits/kit.js"
         );
 
+        Settings.getInstance(getProject()).configFilePath = "sub/mainWithRelativePath.js";
+
         // 1
         strings = getCompletionStringsForHumanPosition(2, 35);
         assertCompletionList(Arrays.asList(
                 "pathForBlock",
-                "pathForDirectoryTwoDot",
-                "pathForDirectoryOneDot",
                 "pathForKit",
-                "pathForDirOneDotWithDir"
+                "pathForDirectoryTwoDot/block",
+                "pathForDirectoryTwoDot/childWebPathFile",
+                "pathForDirectoryTwoDot/fileWithDotPath",
+                "pathForDirectoryTwoDot/fileWithTwoDotPath",
+                "pathForDirectoryTwoDot/childBlocks/childBlock",
+                "pathForDirectoryOneDot/kits/kit",
+                "pathForDirectoryOneDot/mainWithRelativePath",
+                "pathForDirOneDotWithDir/kit"
         ), strings);
 
         // 2
@@ -420,7 +427,6 @@ public class CompletionTest extends RequirejsTestCase
                 "pathForDirectoryTwoDot/childWebPathFile",
                 "pathForDirectoryTwoDot/fileWithDotPath",
                 "pathForDirectoryTwoDot/fileWithTwoDotPath",
-                "pathForDirectoryTwoDot/fileWithDefine",
                 "pathForDirectoryTwoDot/childBlocks/childBlock"
         ), strings);
 
@@ -433,7 +439,7 @@ public class CompletionTest extends RequirejsTestCase
 
         // 4
         strings = getCompletionStringsForHumanPosition(5, 38);
-        assertEmpty(strings);
+        assertNull(strings);
 
         // 5
         strings = getCompletionStringsForHumanPosition(6, 52);
@@ -447,6 +453,6 @@ public class CompletionTest extends RequirejsTestCase
 
         // 7
         strings = getCompletionStringsForHumanPosition(8, 51);
-        assertEmpty(strings);
+        assertNull(strings);
     }
 }
