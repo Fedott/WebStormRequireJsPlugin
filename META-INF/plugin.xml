@@ -1,7 +1,7 @@
 <idea-plugin version="2">
   <id>com.fedot.idea.requirejs</id>
   <name>Require.js plugin</name>
-  <version>0.10</version>
+  <version>0.11</version>
   <vendor email="fedotru@gmail.com" url="http://guthub.com/Fedott/">Vladimir Fedorov</vendor>
 
   <depends>com.intellij.modules.platform</depends>
@@ -16,11 +16,13 @@
       ]]></description>
 
   <change-notes><![CDATA[
-      Version 0.10<br />
-        - Big refactoring. You plugin settings will be lost
+      Version 0.11 <br />
+        - Added completion and reference resolve for paths declared in the config file <br />
+      Version 0.10 <br />
+        - Big refactoring. You plugin settings will be lost <br />
         - Refactor settings page <br />
-        - Fix bug "Already disposed"
-        - Added getting started section on readme
+        - Fix bug "Already disposed" <br />
+        - Added getting started section on readme <br />
         - Added enable\disable plugin <br />
         - Added tests for completion <br />
         - Added tests for reference <br />
