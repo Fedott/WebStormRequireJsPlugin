@@ -18,6 +18,7 @@
   <change-notes><![CDATA[
       Version 0.11 <br />
         - Added completion and reference resolve for paths declared in the config file <br />
+        - Added support configs start with require({}), requirejs({}), require.config({}), requirejs.config({}) <br />
       Version 0.10 <br />
         - Big refactoring. You plugin settings will be lost <br />
         - Refactor settings page <br />

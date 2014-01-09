@@ -240,7 +240,6 @@ public class RequirejsProjectComponent implements ProjectComponent
         }
 
         if (node.getElementType() == JSTokenTypes.IDENTIFIER) {
-            String requirejsFunctionName = Settings.REQUIREJS_REQUIRE_FUNCTION_NAME;
             if (node.getText().equals("requirejs") || node.getText().equals("require")) {
                 TreeElement treeParent = node.getTreeParent();
 
