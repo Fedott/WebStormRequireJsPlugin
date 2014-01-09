@@ -3,6 +3,7 @@ package requirejs;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.javascript.JSElementTypes;
 import com.intellij.lang.javascript.JSTokenTypes;
+import com.intellij.lang.javascript.psi.JSReferenceExpression;
 import com.intellij.lang.javascript.psi.impl.JSFileImpl;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
@@ -240,13 +241,9 @@ public class RequirejsProjectComponent implements ProjectComponent
 
         if (node.getElementType() == JSTokenTypes.IDENTIFIER) {
             String requirejsFunctionName = Settings.REQUIREJS_REQUIRE_FUNCTION_NAME;
-            if (node.getText().equals(requirejsFunctionName)) {
+            if (node.getText().equals("requirejs") || node.getText().equals("require")) {
                 TreeElement treeParent = node.getTreeParent();
-                findAndParseConfig(list, treeParent);
-            }
-            // TODO: Change to array list contains ("requirejs", "require", ...)
-            if (node.getText().equals("requirejs")) {
-                TreeElement treeParent = node.getTreeParent();
+
                 if (null != treeParent) {
                     TreeElement nextTreeElement = treeParent.getTreeNext();
                     if (null != nextTreeElement && nextTreeElement.getElementType() == JSTokenTypes.DOT) {
@@ -255,6 +252,8 @@ public class RequirejsProjectComponent implements ProjectComponent
                             treeParent = nextTreeElement.getTreeParent();
                             findAndParseConfig(list, treeParent);
                         }
+                    } else {
+                        findAndParseConfig(list, treeParent);
                     }
                 }
             }
