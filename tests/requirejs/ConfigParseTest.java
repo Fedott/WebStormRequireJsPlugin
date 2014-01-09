@@ -123,23 +123,59 @@ public class ConfigParseTest extends RequirejsTestCase
         assertNull(referenceElement);
     }
 
-    public void testCompletionOtherConfigFile()
+    protected void testCompletionOtherConfigFile(String configPath)
     {
-        Settings.getInstance(getProject()).configFilePath = "mainRequire.js";
+        Settings.getInstance(getProject()).configFilePath = configPath;
 
         // moduleDepend
         List<String> strings = getCompletionStrings(1, 38);
         assertCompletionList(Arrays.asList(
                 "moduleRelativeBaseUrlPath",
                 "moduleAbsolutePath",
-                "moduleRelativeOneDotPath"
+                "moduleRelativeTwoDotPAth"
         ), strings);
 
         // moduleDepend2
         strings = getCompletionStrings(2, 39);
         assertCompletionList(Arrays.asList(
                 "moduleRelativeBaseUrlPath",
-                "moduleRelativeOneDotPath"
+                "moduleRelativeTwoDotPAth"
         ), strings);
+    }
+
+    public void testCompletionConfigRequire() {
+        myFixture.configureByFiles(
+                "public/rootWebPathConfigTest.js",
+                "public/config/configWithRequire.js"
+        );
+
+        testCompletionOtherConfigFile("config/configWithRequire.js");
+    }
+
+    public void testCompletionConfigRequireJs() {
+        myFixture.configureByFiles(
+                "public/rootWebPathConfigTest.js",
+                "public/config/configWithRequireJs.js"
+        );
+
+        testCompletionOtherConfigFile("config/configWithRequireJs.js");
+    }
+
+    public void testCompletionConfigRequireFirstObject() {
+        myFixture.configureByFiles(
+                "public/rootWebPathConfigTest.js",
+                "public/config/configWithRequireFirstObject.js"
+        );
+
+        testCompletionOtherConfigFile("config/configWithRequireFirstObject.js");
+    }
+
+    public void testCompletionConfigRequireJsFirstObject() {
+        myFixture.configureByFiles(
+                "public/rootWebPathConfigTest.js",
+                "public/config/configWithRequireJsFirstObject.js"
+        );
+
+        testCompletionOtherConfigFile("config/configWithRequireJsFirstObject.js");
     }
 }
