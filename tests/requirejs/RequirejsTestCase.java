@@ -24,7 +24,7 @@ public abstract class RequirejsTestCase extends CodeInsightFixtureTestCase {
     }
 
     protected void assertCompletionList(List<String> expected, int expectedSize, List<String> actual) {
-        assert actual != null;
+        assertNotNull(actual);
         assertContainsElements(actual, expected);
         assertEquals(expectedSize, actual.size());
     }

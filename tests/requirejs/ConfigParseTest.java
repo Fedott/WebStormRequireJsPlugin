@@ -178,4 +178,51 @@ public class ConfigParseTest extends RequirejsTestCase
 
         testCompletionOtherConfigFile("config/configWithRequireJsFirstObject.js");
     }
+
+    public void testCompletionConfigWithStringLiteral() {
+        myFixture.configureByFiles(
+                "public/rootWebPathConfigTest.js",
+                "public/config/configWithStringLiteral.js"
+        );
+
+        testCompletionOtherConfigFile("config/configWithStringLiteral.js");
+    }
+
+    public void testConfigWithBaseUrlWithoutStartSlash()
+    {
+        List<String> strings;
+        PsiReference reference;
+
+        myFixture.configureByFile("public/config/configWithBaseUrlWithoutStartSlash.js");
+
+        Settings.getInstance(getProject()).configFilePath = "config/configWithBaseUrlWithoutStartSlash.js";
+
+
+        // Completion 1
+        strings = getCompletionStringsForHumanPosition(10, 11);
+        assertCompletionList(Arrays.asList(
+                "aliasChildBlock",
+                "aliasRelativePath/fileWithDotPath",
+                "aliasRelativePath/childWebPathFile",
+                "aliasRelativePath/fileWithTwoDotPath",
+                "aliasRelativePath/block",
+                "aliasRelativePath/childBlocks/childBlock"
+        ), strings);
+
+        // Completion 2
+        strings = getCompletionStringsForHumanPosition(11, 29);
+        assertCompletionList(Arrays.asList(
+                "aliasRelativePath/childWebPathFile",
+                "aliasRelativePath/childBlocks/childBlock"
+        ), strings);
+
+
+        // Reference 1
+        reference = getReferenceForHumanPosition(13, 16);
+        assertReference(reference, "'aliasChildBlock'", "childBlock.js");
+
+        // Reference 2
+        reference = getReferenceForHumanPosition(14,16);
+        assertReference(reference, "'aliasRelativePath/block'", "block.js");
+    }
 }

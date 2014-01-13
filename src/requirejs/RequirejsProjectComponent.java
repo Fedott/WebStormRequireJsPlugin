@@ -3,7 +3,6 @@ package requirejs;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.javascript.JSElementTypes;
 import com.intellij.lang.javascript.JSTokenTypes;
-import com.intellij.lang.javascript.psi.JSReferenceExpression;
 import com.intellij.lang.javascript.psi.impl.JSFileImpl;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
@@ -287,8 +286,16 @@ public class RequirejsProjectComponent implements ProjectComponent
         try {
             if (node.getElementType() == JSElementTypes.PROPERTY) {
                 TreeElement identifier = (TreeElement) node.findChildByType(JSTokenTypes.IDENTIFIER);
+                String identifierName = null;
                 if (null != identifier) {
-                    String identifierName = identifier.getText();
+                    identifierName = identifier.getText();
+                } else {
+                    TreeElement identifierString = (TreeElement) node.findChildByType(JSTokenTypes.STRING_LITERAL);
+                    if (null != identifierString) {
+                        identifierName = identifierString.getText().replace("\"", "").replace("'", "");
+                    }
+                }
+                if (null != identifierName) {
                     if (identifierName.equals("baseUrl")) {
                         String baseUrl;
 
@@ -514,8 +521,9 @@ public class RequirejsProjectComponent implements ProjectComponent
         }
 
         ArrayList<String> allFiles = getAllFilesInDirectory(getWebDir(), getWebDir().getPath().concat("/"), "");
-        allFiles.addAll(getAllFilesForConfigPaths());
+        ArrayList<String> aliasFiles = getAllFilesForConfigPaths();
 
+        String valuePathForAlias = valuePath;
         if (!oneDot && 0 == doubleDotCount && !startSlash && !getBaseUrl().equals("")) {
             valuePath = getBaseUrl().concat("/").concat(valuePath);
         }
@@ -549,6 +557,16 @@ public class RequirejsProjectComponent implements ProjectComponent
                     file = "/".concat(file);
                 }
 
+                if (tpl && file.endsWith(".html")) {
+                    completions.add("tpl!" + file);
+                } else if (file.endsWith(".js")) {
+                    completions.add(file.replace(".js", ""));
+                }
+            }
+        }
+
+        for (String file : aliasFiles) {
+            if (file.startsWith(valuePathForAlias)) {
                 if (tpl && file.endsWith(".html")) {
                     completions.add("tpl!" + file);
                 } else if (file.endsWith(".js")) {
