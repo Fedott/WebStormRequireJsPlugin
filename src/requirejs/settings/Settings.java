@@ -6,7 +6,7 @@ import com.intellij.util.xmlb.XmlSerializerUtil;
 import org.jetbrains.annotations.Nullable;
 
 @State(
-        name = "Settings",
+        name = "RequirejsProjectComponent",
         storages = {
                 @Storage(id = "default", file = StoragePathMacros.PROJECT_FILE),
                 @Storage(id = "dir", file = StoragePathMacros.PROJECT_CONFIG_DIR + "/requirejsPlugin.xml", scheme = StorageScheme.DIRECTORY_BASED)
