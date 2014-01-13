@@ -18,6 +18,8 @@
   <change-notes><![CDATA[
       Version 0.12 <br />
         - Fixed compatibility issue with symfony2 plugin. You plugin settings will be lost <br />
+        - Fixed completion for alias if baseUrl set <br />
+        - Config properties as string now work <br />
       Version 0.11 <br />
         - Added completion and reference resolve for paths declared in the config file <br />
         - Added support configs start with require({}), requirejs({}), require.config({}), requirejs.config({}) <br />
