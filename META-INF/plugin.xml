@@ -12,12 +12,13 @@
       Features:<br />
         - Completion file paths<br />
         - Reference find files<br />
-        - Completion path for template (path start with "tpl!")<br />
+        - Completion path for loader plugin (path start with "module!")<br />
       ]]></description>
 
   <change-notes><![CDATA[
       Version 0.13 <br />
-        - Added supports require.js loader plugins (exclamation mark separator)
+        - Added supports require.js loader plugins (exclamation mark separator) (example: tpl!template.html) <br />
+        - Fix stack overflow error <br />
       Version 0.12 <br />
         - Fixed compatibility issue with symfony2 plugin. You plugin settings will be lost <br />
         - Fixed completion for alias if baseUrl set <br />
