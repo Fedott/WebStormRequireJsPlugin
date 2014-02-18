@@ -1,5 +1,6 @@
 package requirejs;
 
+import com.intellij.psi.PsiReference;
 import requirejs.settings.Settings;
 
 import java.util.Arrays;
@@ -111,5 +112,55 @@ public class ExclamationMarkTest extends RequirejsTestCase {
                 "moduleOne!./fileWithExclamationMarkTest",
                 "moduleOne!./blocks/childBlocks/templates/index.html"
         ), strings);
+    }
+
+    public void testReference()
+    {
+        myFixture.configureByFile("public/blocks/fileForReferenceTestWithExclamationMark.js");
+        PsiReference reference;
+
+        // 1
+        reference = getReferenceForHumanPosition(2, 42);
+        assertReference(reference, "'moduleOne!notFound'", null);
+    }
+
+    public void testReference2()
+    {
+        myFixture.configureByFile("public/blocks/fileForReferenceTestWithExclamationMark.js");
+        PsiReference reference;
+
+        // 1
+        reference = getReferenceForHumanPosition(3, 42);
+        assertReference(reference, "'moduleTwo!moduleOne'", "childBlock.js");
+    }
+
+    public void testReference3()
+    {
+        myFixture.configureByFile("public/blocks/fileForReferenceTestWithExclamationMark.js");
+        PsiReference reference;
+
+        // 1
+        reference = getReferenceForHumanPosition(4, 42);
+        assertReference(reference, "'moduleOne!block'", "block.js");
+    }
+
+    public void testReference4()
+    {
+        myFixture.configureByFile("public/blocks/fileForReferenceTestWithExclamationMark.js");
+        PsiReference reference;
+
+        // 1
+        reference = getReferenceForHumanPosition(5, 42);
+        assertReference(reference, "'moduleOne!../fileWithExclamationMarkTest'", "fileWithExclamationMarkTest.js");
+    }
+
+    public void testReference5()
+    {
+        myFixture.configureByFile("public/blocks/fileForReferenceTestWithExclamationMark.js");
+        PsiReference reference;
+
+        // 1
+        reference = getReferenceForHumanPosition(6, 42);
+        assertReference(reference, "'moduleOne!./fileWithDotPath'", "fileWithDotPath.js");
     }
 }
