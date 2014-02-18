@@ -399,14 +399,17 @@ public class RequirejsProjectComponent implements ProjectComponent
 
         value = element.getText().replace("'", "").replace("\"", "");
         valuePath = value;
-        if (valuePath.startsWith("tpl!")) {
-            valuePath = valuePath.replace("tpl!", "");
-        } else if (!valuePath.endsWith(".js")) {
-            valuePath = valuePath.concat(".js");
+        if (valuePath.contains("!")) {
+            String[] exclamationMarkSplit = valuePath.split("!");
+            if (exclamationMarkSplit.length == 2) {
+                valuePath = exclamationMarkSplit[1];
+            } else {
+                valuePath = "";
+            }
         }
 
         if (valuePath.startsWith("/")) {
-            targetFile = getWebDir().findFileByRelativePath(valuePath);
+            targetFile = findFileByPath(getWebDir(), valuePath);
             if (null != targetFile) {
                 return PsiManager.getInstance(element.getProject()).findFile(targetFile);
             } else {
@@ -415,22 +418,20 @@ public class RequirejsProjectComponent implements ProjectComponent
         } else if (valuePath.startsWith(".")) {
             PsiDirectory fileDirectory = element.getContainingFile().getContainingDirectory();
             if (null != fileDirectory) {
-                targetFile = fileDirectory
-                        .getVirtualFile()
-                        .findFileByRelativePath(valuePath);
+                targetFile = findFileByPath(fileDirectory.getVirtualFile(), valuePath);
                 if (null != targetFile) {
                     return PsiManager.getInstance(element.getProject()).findFile(targetFile);
                 }
             }
         }
 
-        targetFile = getBaseUrlPath().findFileByRelativePath(valuePath);
+        targetFile = findFileByPath(getBaseUrlPath(), valuePath);
 
         if (targetFile != null) {
             return PsiManager.getInstance(element.getProject()).findFile(targetFile);
         }
 
-        VirtualFile module = getModuleVFile(value);
+        VirtualFile module = getModuleVFile(valuePath);
         if (null != module) {
             return PsiManager
                     .getInstance(element.getProject())
@@ -439,7 +440,7 @@ public class RequirejsProjectComponent implements ProjectComponent
 
         for (Map.Entry<String, VirtualFile> entry : getConfigPaths().entrySet()) {
             if (valuePath.startsWith(entry.getKey())) {
-                targetFile = entry.getValue().findFileByRelativePath(valuePath.replace(entry.getKey(), ""));
+                targetFile = findFileByPath(entry.getValue(), valuePath.replace(entry.getKey(), ""));
                 if (null != targetFile) {
                     return PsiManager.getInstance(element.getProject()).findFile(targetFile);
                 }
@@ -447,6 +448,15 @@ public class RequirejsProjectComponent implements ProjectComponent
         }
 
         return null;
+    }
+
+    protected VirtualFile findFileByPath(VirtualFile path, String valuePath) {
+        VirtualFile file = path.findFileByRelativePath(valuePath);
+        if (null == file) {
+            file = path.findFileByRelativePath(valuePath.concat(".js"));
+        }
+
+        return file;
     }
 
     public ArrayList<String> getCompletion(PsiElement element)
