@@ -1,6 +1,6 @@
 package requirejs;
 
-public class exclamationMarkTest extends RequirejsTestCase {
+public class ExclamationMarkTest extends RequirejsTestCase {
     @Override
     public void setUp() throws Exception {
         super.setUp();
