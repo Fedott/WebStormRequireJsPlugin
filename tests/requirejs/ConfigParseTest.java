@@ -41,14 +41,16 @@ public class ConfigParseTest extends RequirejsTestCase
         assertCompletionList(Arrays.asList(
                 "moduleRelativeBaseUrlPath",
                 "moduleAbsolutePath",
-                "moduleRelativeOneDotPath"
+                "moduleRelativeOneDotPath",
+                "moduleRelativeTwoDotPath"
         ), strings);
 
         // moduleDepend2
         strings = getCompletionStrings(2, 39);
         assertCompletionList(Arrays.asList(
                 "moduleRelativeBaseUrlPath",
-                "moduleRelativeOneDotPath"
+                "moduleRelativeOneDotPath",
+                "moduleRelativeTwoDotPath"
         ), strings);
     }
 
@@ -224,5 +226,48 @@ public class ConfigParseTest extends RequirejsTestCase
         // Reference 2
         reference = getReferenceForHumanPosition(14,16);
         assertReference(reference, "'aliasRelativePath/block'", "block.js");
+    }
+
+    public void testConfigWithRelativePathReference()
+    {
+        PsiReference reference;
+
+        initForTestConfigWithRelativePath();
+
+        // 1
+        reference = getReferenceForHumanPosition(11, 12);
+        assertReference(reference, "'moduleOne'", "kit.js");
+    }
+
+    public void testConfigWithRelativePathReference2()
+    {
+        PsiReference reference;
+
+        initForTestConfigWithRelativePath();
+
+        // 2
+        reference = getReferenceForHumanPosition(12, 12);
+        assertReference(reference, "'moduleTwo'", "mainWithRelativePath.js");
+    }
+
+    public void testConfigWithRelativePathReference3()
+    {
+        PsiReference reference;
+
+        initForTestConfigWithRelativePath();
+
+        // 3
+        reference = getReferenceForHumanPosition(13, 12);
+        assertReference(reference, "'moduleThree'", "main.js");
+    }
+
+    protected void initForTestConfigWithRelativePath() {
+        myFixture.configureByFiles(
+                "public/config/configWithRelativePathTest.js",
+                "public/sub/kits/kit.js",
+                "public/sub/mainWithRelativePath.js"
+        );
+
+        Settings.getInstance(getProject()).configFilePath = "config/configWithRelativePathTest.js";
     }
 }

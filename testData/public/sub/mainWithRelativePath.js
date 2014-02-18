@@ -1,4 +1,5 @@
 require({
+    baseUrl: 'sub'
     paths: {
         pathForBlock: '../blocks/block',
         pathForDirectoryTwoDot: '../blocks',

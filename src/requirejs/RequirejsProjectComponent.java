@@ -170,10 +170,13 @@ public class RequirejsProjectComponent implements ProjectComponent
         return requirejsBaseUrl;
     }
 
-    public VirtualFile getBaseUrlPath()
+    public VirtualFile getBaseUrlPath(Boolean parseConfig)
     {
         if (null == requirejsBaseUrlPath) {
-            if (!parseRequirejsConfig() || null == requirejsBaseUrlPath) {
+            if (parseConfig) {
+                parseRequirejsConfig();
+            }
+            if (null == requirejsBaseUrlPath) {
                 requirejsBaseUrlPath = getWebDir();
             }
         }
@@ -359,14 +362,11 @@ public class RequirejsProjectComponent implements ProjectComponent
 
                 VirtualFile rootDirectory = null;
                 if (pathString.startsWith(".")) {
-                    PsiDirectory configFileDirectory = node.getPsi().getContainingFile().getContainingDirectory();
-                    if (null != configFileDirectory) {
-                        rootDirectory = configFileDirectory.getVirtualFile();
-                    }
+                    rootDirectory = getBaseUrlPath(false);
                 } else if (pathString.startsWith("/")) {
                     rootDirectory = getWebDir();
                 } else {
-                    rootDirectory = getBaseUrlPath();
+                    rootDirectory = getBaseUrlPath(false);
                 }
 
                 if (null != rootDirectory) {
@@ -425,7 +425,7 @@ public class RequirejsProjectComponent implements ProjectComponent
             }
         }
 
-        targetFile = findFileByPath(getBaseUrlPath(), valuePath);
+        targetFile = findFileByPath(getBaseUrlPath(true), valuePath);
 
         if (targetFile != null) {
             return PsiManager.getInstance(element.getProject()).findFile(targetFile);
@@ -438,11 +438,13 @@ public class RequirejsProjectComponent implements ProjectComponent
                     .findFile(module);
         }
 
-        for (Map.Entry<String, VirtualFile> entry : getConfigPaths().entrySet()) {
-            if (valuePath.startsWith(entry.getKey())) {
-                targetFile = findFileByPath(entry.getValue(), valuePath.replace(entry.getKey(), ""));
-                if (null != targetFile) {
-                    return PsiManager.getInstance(element.getProject()).findFile(targetFile);
+        if (null != getConfigPaths()) {
+            for (Map.Entry<String, VirtualFile> entry : getConfigPaths().entrySet()) {
+                if (valuePath.startsWith(entry.getKey())) {
+                    targetFile = findFileByPath(entry.getValue(), valuePath.replace(entry.getKey(), ""));
+                    if (null != targetFile) {
+                        return PsiManager.getInstance(element.getProject()).findFile(targetFile);
+                    }
                 }
             }
         }
