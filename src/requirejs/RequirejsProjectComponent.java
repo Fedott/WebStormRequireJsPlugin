@@ -453,8 +453,9 @@ public class RequirejsProjectComponent implements ProjectComponent
     {
         ArrayList<String> completions = new ArrayList<String>();
         String value = element.getText().replace("'", "").replace("\"", "").replace("IntellijIdeaRulezzz ", "");
-        Boolean tpl = value.startsWith("tpl!");
-        String valuePath = value.replaceFirst("tpl!", "");
+        String valuePath = value;
+        Boolean exclamationMark = value.contains("!");
+        String exclamationMarkBefore = "";
         Boolean oneDot;
         Integer doubleDotCount = 0;
         Boolean startSlash;
@@ -462,7 +463,23 @@ public class RequirejsProjectComponent implements ProjectComponent
         String pathOnDots = "";
         String dotString = "";
 
-        completions.addAll(getModulesNames());
+        if (exclamationMark) {
+            String[] exclamationMarkSplit = valuePath.split("!");
+            exclamationMarkBefore = exclamationMarkSplit[0];
+            if (exclamationMarkSplit.length == 2) {
+                valuePath = exclamationMarkSplit[1];
+            } else {
+                valuePath = "";
+            }
+        }
+
+        if (exclamationMark) {
+            for (String moduleName : getModulesNames()) {
+                completions.add(exclamationMarkBefore + "!" + moduleName);
+            }
+        } else {
+            completions.addAll(getModulesNames());
+        }
 
         PsiDirectory fileDirectory = element
                 .getContainingFile()
@@ -557,8 +574,11 @@ public class RequirejsProjectComponent implements ProjectComponent
                     file = "/".concat(file);
                 }
 
-                if (tpl && file.endsWith(".html")) {
-                    completions.add("tpl!" + file);
+                if (exclamationMark) {
+                    if (file.endsWith(".js")) {
+                        file = file.replace(".js", "");
+                    }
+                    completions.add(exclamationMarkBefore + "!" + file);
                 } else if (file.endsWith(".js")) {
                     completions.add(file.replace(".js", ""));
                 }
@@ -567,8 +587,11 @@ public class RequirejsProjectComponent implements ProjectComponent
 
         for (String file : aliasFiles) {
             if (file.startsWith(valuePathForAlias)) {
-                if (tpl && file.endsWith(".html")) {
-                    completions.add("tpl!" + file);
+                if (exclamationMark) {
+                    if (file.endsWith(".js")) {
+                        file = file.replace(".js", "");
+                    }
+                    completions.add(exclamationMarkBefore + "!" + file);
                 } else if (file.endsWith(".js")) {
                     completions.add(file.replace(".js", ""));
                 }
