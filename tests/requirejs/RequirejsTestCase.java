@@ -64,13 +64,18 @@ public abstract class RequirejsTestCase extends CodeInsightFixtureTestCase {
             }
         }
 
+        if (!expectedText.startsWith("'")) {
+            expectedText = "'".concat(expectedText).concat("'");
+        }
+
         assertInstanceOf(reference, RequirejsReference.class);
         assertEquals(expectedText, reference.getCanonicalText());
         PsiElement referenceElement = reference.resolve();
         if (null == expectedFileName) {
             assertNull(referenceElement);
         } else {
-            assertTrue(referenceElement instanceof JSFile);
+            assertNotNull(referenceElement);
+            assertInstanceOf(referenceElement, JSFile.class);
             assertEquals(expectedFileName, ((JSFile) referenceElement).getName());
         }
     }

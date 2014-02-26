@@ -177,11 +177,24 @@ public class RequirejsProjectComponent implements ProjectComponent
                 parseRequirejsConfig();
             }
             if (null == requirejsBaseUrlPath) {
-                requirejsBaseUrlPath = getWebDir();
+                requirejsBaseUrlPath = getConfigFileDir();
             }
         }
 
         return requirejsBaseUrlPath;
+    }
+
+    protected VirtualFile getConfigFileDir()
+    {
+        VirtualFile mainJsVirtualFile = getWebDir()
+            .findFileByRelativePath(
+                    settings.configFilePath
+            );
+        if (null != mainJsVirtualFile) {
+            return mainJsVirtualFile.getParent();
+        } else {
+            return null;
+        }
     }
 
     protected boolean parseRequirejsConfig()

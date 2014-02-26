@@ -270,4 +270,85 @@ public class ConfigParseTest extends RequirejsTestCase
 
         Settings.getInstance(getProject()).configFilePath = "config/configWithRelativePathTest.js";
     }
+
+    protected void initForTestsConfigWithoutBaseUrlWithRelativePathReference()
+    {
+        myFixture.configureByFiles(
+                "public/blocks/fileForReferenceTestConfigWithoutBaseUrlWithRelativePath.js",
+                "public/sub/kits/kit.js",
+                "public/sub/kits/configWithoutBaseUrlWithRelativePath.js"
+        );
+
+        Settings.getInstance(getProject()).configFilePath = "sub/kits/configWithoutBaseUrlWithRelativePath.js";
+    }
+
+    public void testConfigWithoutBaseUrlWithRelativePathReference1()
+    {
+        PsiReference reference;
+        initForTestsConfigWithoutBaseUrlWithRelativePathReference();
+
+        // 1
+        reference = getReferenceForHumanPosition(2, 30);
+        assertReference(reference, "pathForBlock", "block.js");
+    }
+
+    public void testConfigWithoutBaseUrlWithRelativePathReference2()
+    {
+        PsiReference reference;
+        initForTestsConfigWithoutBaseUrlWithRelativePathReference();
+
+        // 2
+        reference = getReferenceForHumanPosition(3, 30);
+        assertReference(reference, "pathForDirectoryTwoDot/block", "block.js");
+    }
+
+    public void testConfigWithoutBaseUrlWithRelativePathReference3()
+    {
+        PsiReference reference;
+        initForTestsConfigWithoutBaseUrlWithRelativePathReference();
+
+        // 3
+        reference = getReferenceForHumanPosition(4, 30);
+        assertReference(reference, "pathForDirectoryOneDot/kit", "kit.js");
+    }
+
+    public void testConfigWithoutBaseUrlWithRelativePathReference4()
+    {
+        PsiReference reference;
+        initForTestsConfigWithoutBaseUrlWithRelativePathReference();
+
+        // 4
+        reference = getReferenceForHumanPosition(5, 30);
+        assertReference(reference, "pathForKit", "kit.js");
+    }
+
+    public void testConfigWithoutBaseUrlWithRelativePathReference5()
+    {
+        PsiReference reference;
+        initForTestsConfigWithoutBaseUrlWithRelativePathReference();
+
+        // 5
+        reference = getReferenceForHumanPosition(6, 30);
+        assertReference(reference, "pathForNotFound", null);
+    }
+
+    public void testConfigWithoutBaseUrlWithRelativePathReference6()
+    {
+        PsiReference reference;
+        initForTestsConfigWithoutBaseUrlWithRelativePathReference();
+
+        // 6
+        reference = getReferenceForHumanPosition(7, 30);
+        assertReference(reference, "kit", "kit.js");
+    }
+
+    public void testConfigWithoutBaseUrlWithRelativePathReference7()
+    {
+        PsiReference reference;
+        initForTestsConfigWithoutBaseUrlWithRelativePathReference();
+
+        // 7
+        reference = getReferenceForHumanPosition(8, 30);
+        assertReference(reference, "./block", "block.js");
+    }
 }
