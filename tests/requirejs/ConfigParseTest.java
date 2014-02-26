@@ -351,4 +351,111 @@ public class ConfigParseTest extends RequirejsTestCase
         reference = getReferenceForHumanPosition(8, 30);
         assertReference(reference, "./block", "block.js");
     }
+
+    protected void initForTestsConfigWithoutBaseUrlWithRelativePathCompletion()
+    {
+        myFixture.configureByFiles(
+                "public/blocks/fileForCompletionTestConfigWithoutBaseUrlWithRelativePath.js",
+                "public/sub/kits/kit.js",
+                "public/sub/kits/configWithoutBaseUrlWithRelativePath.js"
+        );
+
+        Settings.getInstance(getProject()).configFilePath = "sub/kits/configWithoutBaseUrlWithRelativePath.js";
+    }
+
+    public void testConfigWithoutBaseUrlWithRelativePathCompletion1()
+    {
+        List<String> strings;
+
+        initForTestsConfigWithoutBaseUrlWithRelativePathCompletion();
+
+        // 1
+        strings = getCompletionStringsForHumanPosition(2, 35);
+        assertCompletionList(Arrays.asList(
+                "pathForBlock",
+                "pathForDirectoryTwoDot/fileWithDotPath",
+                "pathForDirectoryTwoDot/childWebPathFile",
+                "pathForDirectoryTwoDot/fileWithTwoDotPath",
+                "pathForDirectoryTwoDot/block",
+                "pathForDirectoryTwoDot/childBlocks/childBlock",
+                "pathForDirectoryTwoDot/fileForCompletionTestConfigWithoutBaseUrlWithRelativePath",
+                "pathForDirectoryOneDot/kit",
+                "pathForDirectoryOneDot/configWithoutBaseUrlWithRelativePath",
+                "pathForKit"
+        ), strings);
+    }
+
+    public void testConfigWithoutBaseUrlWithRelativePathCompletion2()
+    {
+        List<String> strings;
+
+        initForTestsConfigWithoutBaseUrlWithRelativePathCompletion();
+
+        // 2
+        strings = getCompletionStringsForHumanPosition(3, 51);
+        assertCompletionList(Arrays.asList(
+                "pathForDirectoryTwoDot/fileWithDotPath",
+                "pathForDirectoryTwoDot/childWebPathFile",
+                "pathForDirectoryTwoDot/fileWithTwoDotPath",
+                "pathForDirectoryTwoDot/block",
+                "pathForDirectoryTwoDot/childBlocks/childBlock",
+                "pathForDirectoryTwoDot/fileForCompletionTestConfigWithoutBaseUrlWithRelativePath"
+        ), strings);
+    }
+
+    public void testConfigWithoutBaseUrlWithRelativePathCompletion3()
+    {
+        List<String> strings;
+
+        initForTestsConfigWithoutBaseUrlWithRelativePathCompletion();
+
+        // 3
+        strings = getCompletionStringsForHumanPosition(4, 51);
+        assertCompletionList(Arrays.asList(
+                "pathForDirectoryOneDot/kit",
+                "pathForDirectoryOneDot/configWithoutBaseUrlWithRelativePath"
+        ), strings);
+    }
+
+    public void testConfigWithoutBaseUrlWithRelativePathCompletion4()
+    {
+        List<String> strings;
+
+        initForTestsConfigWithoutBaseUrlWithRelativePathCompletion();
+
+        // 4
+        strings = getCompletionStringsForHumanPosition(5, 28);
+        assertCompletionList(Arrays.asList(
+                "kit",
+                "configWithoutBaseUrlWithRelativePath",
+                "pathForBlock",
+                "pathForDirectoryTwoDot/fileWithDotPath",
+                "pathForDirectoryTwoDot/childWebPathFile",
+                "pathForDirectoryTwoDot/fileWithTwoDotPath",
+                "pathForDirectoryTwoDot/block",
+                "pathForDirectoryTwoDot/childBlocks/childBlock",
+                "pathForDirectoryTwoDot/fileForCompletionTestConfigWithoutBaseUrlWithRelativePath",
+                "pathForDirectoryOneDot/kit",
+                "pathForDirectoryOneDot/configWithoutBaseUrlWithRelativePath",
+                "pathForKit"
+        ), strings);
+    }
+
+    public void testConfigWithoutBaseUrlWithRelativePathCompletion5()
+    {
+        List<String> strings;
+
+        initForTestsConfigWithoutBaseUrlWithRelativePathCompletion();
+
+        // 5
+        strings = getCompletionStringsForHumanPosition(6, 30);
+        assertCompletionList(Arrays.asList(
+                "./fileWithDotPath",
+                "./childWebPathFile",
+                "./fileWithTwoDotPath",
+                "./block",
+                "./childBlocks/childBlock",
+                "./fileForCompletionTestConfigWithoutBaseUrlWithRelativePath"
+        ), strings);
+    }
 }

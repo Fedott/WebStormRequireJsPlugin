@@ -162,7 +162,14 @@ public class RequirejsProjectComponent implements ProjectComponent
     public String getBaseUrl()
     {
         if (null == requirejsBaseUrl) {
-            if (!parseRequirejsConfig() || null == requirejsBaseUrl) {
+            VirtualFile baseUrlPath = getBaseUrlPath(true);
+            if (null != baseUrlPath) {
+                requirejsBaseUrl = baseUrlPath.getPath().replace(getWebDir().getPath(), "");
+                requirejsBaseUrl = StringUtil.trimEnd(requirejsBaseUrl, "/");
+                if (requirejsBaseUrl.startsWith("/")) {
+                    requirejsBaseUrl = requirejsBaseUrl.substring(1);
+                }
+            } else {
                 requirejsBaseUrl = "";
             }
         }
