@@ -334,4 +334,14 @@ public class ReferenceTest extends RequirejsTestCase {
         reference = getReferenceForHumanPosition(7, 35);
         assertReference(reference, "'pathForNotFound'", null);
     }
+
+    public void testPathToDirectory()
+    {
+        myFixture.configureByFile("public/fileForTestPathToDirectory.js");
+
+        Settings.getInstance(getProject()).configFilePath = "fileForTestPathToDirectory.js";
+
+        PsiReference reference = getReferenceForHumanPosition(9, 13);
+        assertReference(reference, "block/block", "block.js");
+    }
 }

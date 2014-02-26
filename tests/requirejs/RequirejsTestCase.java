@@ -54,7 +54,7 @@ public abstract class RequirejsTestCase extends CodeInsightFixtureTestCase {
     }
 
     protected void assertReference(PsiReference reference, String expectedText, String expectedFileName) {
-        assertNotNull(reference);
+        assertNotNull("wrong cursor position", reference);
         if (reference instanceof PsiMultiReference) {
             for (PsiReference ref : ((PsiMultiReference)reference).getReferences()) {
                 if (ref instanceof RequirejsReference) {

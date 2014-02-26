@@ -461,7 +461,7 @@ public class RequirejsProjectComponent implements ProjectComponent
         if (null != getConfigPaths()) {
             for (Map.Entry<String, VirtualFile> entry : getConfigPaths().entrySet()) {
                 if (valuePath.startsWith(entry.getKey())) {
-                    targetFile = findFileByPath(entry.getValue(), valuePath.replace(entry.getKey(), ""));
+                    targetFile = findFileByPath(entry.getValue(), valuePath.replaceFirst(entry.getKey(), ""));
                     if (null != targetFile) {
                         return PsiManager.getInstance(element.getProject()).findFile(targetFile);
                     }
@@ -564,7 +564,7 @@ public class RequirejsProjectComponent implements ProjectComponent
                     if (valuePath.endsWith("..") || !StringUtil.isEmpty(pathOnDots)) {
                         dotString = dotString.substring(0, dotString.length() - 1);
                     }
-                    valuePath = valuePath.replace(dotString, pathOnDots);
+                    valuePath = valuePath.replaceFirst(dotString, pathOnDots);
                 }
             }
         }
