@@ -266,8 +266,15 @@ public class RequirejsProjectComponent implements ProjectComponent
                 TreeElement treeParent = node.getTreeParent();
 
                 if (null != treeParent) {
+                    ASTNode firstTreeChild = treeParent.findChildByType(JSElementTypes.OBJECT_LITERAL_EXPRESSION);
                     TreeElement nextTreeElement = treeParent.getTreeNext();
-                    if (null != nextTreeElement && nextTreeElement.getElementType() == JSTokenTypes.DOT) {
+                    if (null != firstTreeChild) {
+                        list.putAll(
+                                parseRequirejsConfig((TreeElement) firstTreeChild
+                                                .getFirstChildNode()
+                                )
+                        );
+                    } else if (null != nextTreeElement && nextTreeElement.getElementType() == JSTokenTypes.DOT) {
                         nextTreeElement = nextTreeElement.getTreeNext();
                         if (null != nextTreeElement && nextTreeElement.getText().equals("config")) {
                             treeParent = nextTreeElement.getTreeParent();
@@ -380,7 +387,7 @@ public class RequirejsProjectComponent implements ProjectComponent
                 String pathString = path.getText().replace("\"","").replace("'", "");
                 String aliasString = alias.getText().replace("\"","").replace("'", "");
 
-                VirtualFile rootDirectory = null;
+                VirtualFile rootDirectory;
                 if (pathString.startsWith(".")) {
                     rootDirectory = getBaseUrlPath(false);
                 } else if (pathString.startsWith("/")) {

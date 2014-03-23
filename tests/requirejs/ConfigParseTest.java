@@ -190,6 +190,24 @@ public class ConfigParseTest extends RequirejsTestCase
         testCompletionOtherConfigFile("config/configWithStringLiteral.js");
     }
 
+    public void testCompletionConfigWithGlobalRequireObject() {
+        myFixture.configureByFiles(
+                "public/rootWebPathConfigTest.js",
+                "public/config/configWithGlobalRequireObject.js"
+        );
+
+        testCompletionOtherConfigFile("config/configWithGlobalRequireObject.js");
+    }
+
+    public void testCompletionConfigWithGlobalRequirejsObject() {
+        myFixture.configureByFiles(
+                "public/rootWebPathConfigTest.js",
+                "public/config/configWithGlobalRequirejsObject.js"
+        );
+
+        testCompletionOtherConfigFile("config/configWithGlobalRequirejsObject.js");
+    }
+
     public void testConfigWithBaseUrlWithoutStartSlash()
     {
         List<String> strings;
