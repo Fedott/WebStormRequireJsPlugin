@@ -50,7 +50,9 @@ public class RequirejsProjectComponent implements ProjectComponent
 
     @Override
     public void projectOpened() {
-        validateSettings();
+        if (isEnabled()) {
+            validateSettings();
+        }
     }
 
     @Override
@@ -60,7 +62,9 @@ public class RequirejsProjectComponent implements ProjectComponent
 
     @Override
     public void initComponent() {
-        validateSettings();
+        if (isEnabled()) {
+            validateSettings();
+        }
     }
 
     @Override
@@ -483,7 +487,7 @@ public class RequirejsProjectComponent implements ProjectComponent
 
     protected VirtualFile findFileByPath(VirtualFile path, String valuePath) {
         VirtualFile file = path.findFileByRelativePath(valuePath);
-        if (null == file) {
+        if (null == file || file.isDirectory()) {
             file = path.findFileByRelativePath(valuePath.concat(".js"));
         }
 

@@ -33,4 +33,6 @@ public class FilenameRepeatInPathTest extends RequirejsTestCase {
         PsiReference reference = getReferenceForHumanPosition(10, 33);
         assertReference(reference, "mout/lang/file", "file.js");
     }
+
+
 }

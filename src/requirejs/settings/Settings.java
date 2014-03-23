@@ -19,7 +19,7 @@ public class Settings implements PersistentStateComponent<Settings>
     public static final String REQUIREJS_DEFINE_FUNCTION_NAME = "define";
     public static final String DEFAULT_PUBLIC_PATH = "public";
     public static final String DEFAULT_CONFIG_FILE_PATH = "main.js";
-    public static final Boolean DEFAULT_PLUGIN_ENABLED = true;
+    public static final Boolean DEFAULT_PLUGIN_ENABLED = false;
     public String publicPath = DEFAULT_PUBLIC_PATH;
     public String configFilePath = DEFAULT_CONFIG_FILE_PATH;
     public boolean pluginEnabled = DEFAULT_PLUGIN_ENABLED;

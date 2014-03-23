@@ -12,6 +12,13 @@ import requirejs.settings.Settings;
 import java.util.List;
 
 public abstract class RequirejsTestCase extends CodeInsightFixtureTestCase {
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
+
+        Settings.getInstance(myFixture.getProject()).pluginEnabled = true;
+    }
+
     protected void setWebPathSetting() {
         Settings.getInstance(myFixture.getProject()).publicPath = getProject()
                 .getBaseDir()
