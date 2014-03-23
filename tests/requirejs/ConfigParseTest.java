@@ -154,6 +154,15 @@ public class ConfigParseTest extends RequirejsTestCase
         testCompletionOtherConfigFile("config/configWithRequire.js");
     }
 
+    public void testCompletionConfigRequireInHTMLFile() {
+        myFixture.configureByFiles(
+                "public/rootWebPathConfigTest.js",
+                "public/config/configWithRequire.html"
+        );
+
+        testCompletionOtherConfigFile("config/configWithRequire.html");
+    }
+
     public void testCompletionConfigRequireJs() {
         myFixture.configureByFiles(
                 "public/rootWebPathConfigTest.js",
@@ -170,6 +179,15 @@ public class ConfigParseTest extends RequirejsTestCase
         );
 
         testCompletionOtherConfigFile("config/configWithRequireFirstObject.js");
+    }
+
+    public void testCompletionConfigRequireFirstObjectInHTMLFile() {
+        myFixture.configureByFiles(
+                "public/rootWebPathConfigTest.js",
+                "public/config/configWithRequireFirstObject.html"
+        );
+
+        testCompletionOtherConfigFile("config/configWithRequireFirstObject.html");
     }
 
     public void testCompletionConfigRequireJsFirstObject() {
@@ -197,6 +215,15 @@ public class ConfigParseTest extends RequirejsTestCase
         );
 
         testCompletionOtherConfigFile("config/configWithGlobalRequireObject.js");
+    }
+
+    public void testCompletionConfigWithGlobalRequireObjectInHTMLFile() {
+        myFixture.configureByFiles(
+                "public/rootWebPathConfigTest.js",
+                "public/config/configWithGlobalRequireObject.html"
+        );
+
+        testCompletionOtherConfigFile("config/configWithGlobalRequireObject.html");
     }
 
     public void testCompletionConfigWithGlobalRequirejsObject() {

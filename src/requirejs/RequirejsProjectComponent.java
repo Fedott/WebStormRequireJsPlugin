@@ -18,7 +18,9 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.psi.impl.source.PsiFileImpl;
 import com.intellij.psi.impl.source.tree.TreeElement;
+import com.intellij.psi.impl.source.xml.XmlFileImpl;
 import org.jetbrains.annotations.NotNull;
 import requirejs.settings.Settings;
 
@@ -222,12 +224,12 @@ public class RequirejsProjectComponent implements ProjectComponent
                     .findFile(
                             mainJsVirtualFile
                     );
-            if (mainJs instanceof JSFileImpl) {
+            if (mainJs instanceof JSFileImpl || mainJs instanceof XmlFileImpl) {
                 HashMap<String, VirtualFile> allConfigPaths;
-                if (((JSFileImpl) mainJs).getTreeElement() == null) {
-                    allConfigPaths = parseMainJsFile(((JSFileImpl) mainJs).calcTreeElement());
+                if (((PsiFileImpl) mainJs).getTreeElement() == null) {
+                    allConfigPaths = parseMainJsFile(((PsiFileImpl) mainJs).calcTreeElement());
                 } else {
-                    allConfigPaths = parseMainJsFile(((JSFileImpl) mainJs).getTreeElement());
+                    allConfigPaths = parseMainJsFile(((PsiFileImpl) mainJs).getTreeElement());
                 }
                 requirejsConfigModules = new HashMap<String, VirtualFile>();
                 requirejsConfigPaths = new HashMap<String, VirtualFile>();
