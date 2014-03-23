@@ -19,7 +19,8 @@
       Version 0.15 <br />
         - Added support config object as the global variable require <br />
         - Added support define config in html file <br />
-        - Fixed bugs
+        - Now for the new projects, the plugin is disabled by default <br />
+        - Fixed bugs <br />
       Version 0.14 <br />
         - Fix reference resolve, when baseUrl not set in config <br />
         - Fix completion, when baseUrl not set in config <br />
