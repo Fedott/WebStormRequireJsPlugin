@@ -10,6 +10,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class RequirejsReference implements PsiReference {
     PsiElement element;
@@ -58,7 +59,7 @@ public class RequirejsReference implements PsiReference {
             return completionResultSet.toArray();
         }
 
-        ArrayList<String> files = element
+        List<String> files = element
                 .getProject()
                 .getComponent(RequirejsProjectComponent.class)
                 .getCompletion(element);

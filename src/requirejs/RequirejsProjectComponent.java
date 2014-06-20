@@ -1,5 +1,7 @@
 package requirejs;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Collections2;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.javascript.JSElementTypes;
 import com.intellij.lang.javascript.JSTokenTypes;
@@ -27,9 +29,7 @@ import com.intellij.psi.impl.source.xml.XmlFileImpl;
 import org.jetbrains.annotations.NotNull;
 import requirejs.settings.Settings;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class RequirejsProjectComponent implements ProjectComponent {
     protected Project project;
@@ -38,14 +38,15 @@ public class RequirejsProjectComponent implements ProjectComponent {
     protected String settingValidVersion;
     protected String settingVersionLastShowNotification;
 
-    final protected static Logger LOG = Logger.getInstance("Requirejs-Plugin");
+    private static final Logger LOG = Logger.getInstance("Requirejs-Plugin");
     private VirtualFile requirejsBaseUrlPath;
     private String requirejsBaseUrl;
 
-    protected HashMap<String, VirtualFile> requirejsConfigModules;
-    protected HashMap<String, VirtualFile> requirejsConfigPaths;
+    protected Map<String, VirtualFile> requirejsConfigModules;
+    protected Map<String, VirtualFile> requirejsConfigPaths;
 
     private RequireConfigVfsListener vfsListener;
+    public PackageConfig packageConfig;
 
     public RequirejsProjectComponent(Project project) {
         this.project = project;
@@ -113,10 +114,10 @@ public class RequirejsProjectComponent implements ProjectComponent {
         if (null == getWebDir()) {
             showErrorConfigNotification(
                     "Public directory not found. Path " +
-                            project.getBaseDir().getPath() + "/" + settings.publicPath +
+                            project.getBaseDir().getPath() + '/' + settings.publicPath +
                             " not found in project"
             );
-            getLogger().debug("Public directory not found");
+            LOG.debug("Public directory not found");
             settingValidStatus = false;
             return false;
         }
@@ -138,7 +139,7 @@ public class RequirejsProjectComponent implements ProjectComponent {
     }
 
     public VirtualFile getWebDir() {
-        if (settings.publicPath.equals("")) {
+        if (settings.publicPath.isEmpty()) {
             return project.getBaseDir();
         }
         return project.getBaseDir().findFileByRelativePath(settings.publicPath);
@@ -149,7 +150,7 @@ public class RequirejsProjectComponent implements ProjectComponent {
         Notifications.Bus.notify(errorNotification, this.project);
     }
 
-    public HashMap<String, VirtualFile> getConfigPaths() {
+    public Map<String, VirtualFile> getConfigPaths() {
         if (requirejsConfigPaths == null) {
             if (!parseRequirejsConfig()) {
                 return requirejsConfigPaths;
@@ -159,16 +160,21 @@ public class RequirejsProjectComponent implements ProjectComponent {
         return requirejsConfigPaths;
     }
 
-    public ArrayList<String> getModulesNames() {
-        ArrayList<String> modules = new ArrayList<String>();
+    public List<String> getModulesNames() {
+        List<String> modules = new ArrayList<String>();
         if (requirejsConfigModules == null) {
             if (!parseRequirejsConfig()) {
                 return modules;
             }
         }
-
         modules.addAll(requirejsConfigModules.keySet());
-
+        Collection<String> ret = Collections2.transform(packageConfig.packages, new Function<Package, String>() {
+            @Override
+            public String apply(Package aPackage) {
+                return aPackage.name;
+            }
+        });
+        modules.addAll(ret);
         return modules;
     }
 
@@ -178,7 +184,6 @@ public class RequirejsProjectComponent implements ProjectComponent {
                 return null;
             }
         }
-
         return requirejsConfigModules.get(alias);
     }
 
@@ -199,7 +204,7 @@ public class RequirejsProjectComponent implements ProjectComponent {
         return requirejsBaseUrl;
     }
 
-    public VirtualFile getBaseUrlPath(Boolean parseConfig) {
+    public VirtualFile getBaseUrlPath(boolean parseConfig) {
         if (null == requirejsBaseUrlPath) {
             if (parseConfig) {
                 parseRequirejsConfig();
@@ -224,25 +229,19 @@ public class RequirejsProjectComponent implements ProjectComponent {
         }
     }
 
-    protected boolean parseRequirejsConfig() {
-        VirtualFile mainJsVirtualFile = getWebDir()
-                .findFileByRelativePath(
-                        settings.configFilePath
-                );
+//    private Date lastParse;
+
+    public boolean parseRequirejsConfig() {
+        VirtualFile mainJsVirtualFile = getWebDir().findFileByRelativePath(settings.configFilePath);
         if (null == mainJsVirtualFile) {
-            this.showErrorConfigNotification("Config file not found. File " +
-                    settings.publicPath + "/" + settings.configFilePath +
-                    " not found in project");
-            getLogger().debug("Config not found");
+            this.showErrorConfigNotification("Config file not found. File " + settings.publicPath + '/' + settings.configFilePath + " not found in project");
+            LOG.debug("Config not found");
             return false;
         } else {
-            PsiFile mainJs = PsiManager
-                    .getInstance(project)
-                    .findFile(
-                            mainJsVirtualFile
-                    );
+            PsiFile mainJs = PsiManager.getInstance(project).findFile(mainJsVirtualFile);
             if (mainJs instanceof JSFileImpl || mainJs instanceof XmlFileImpl) {
-                HashMap<String, VirtualFile> allConfigPaths;
+                Map<String, VirtualFile> allConfigPaths;
+                packageConfig = new PackageConfig();
                 if (((PsiFileImpl) mainJs).getTreeElement() == null) {
                     allConfigPaths = parseMainJsFile(((PsiFileImpl) mainJs).calcTreeElement());
                 } else {
@@ -259,7 +258,7 @@ public class RequirejsProjectComponent implements ProjectComponent {
                 }
             } else {
                 this.showErrorConfigNotification("Config file wrong format");
-                getLogger().debug("Config file wrong format");
+                LOG.debug("Config file wrong format");
                 return false;
             }
         }
@@ -267,8 +266,8 @@ public class RequirejsProjectComponent implements ProjectComponent {
         return true;
     }
 
-    public HashMap<String, VirtualFile> parseMainJsFile(TreeElement node) {
-        HashMap<String, VirtualFile> list = new HashMap<String, VirtualFile>();
+    public Map<String, VirtualFile> parseMainJsFile(TreeElement node) {
+        Map<String, VirtualFile> list = new HashMap<String, VirtualFile>();
 
         TreeElement firstChild = node.getFirstChildNode();
         if (firstChild != null) {
@@ -309,7 +308,7 @@ public class RequirejsProjectComponent implements ProjectComponent {
         return list;
     }
 
-    protected void findAndParseConfig(HashMap<String, VirtualFile> list, TreeElement treeParent) {
+    protected void findAndParseConfig(Map<String, VirtualFile> list, TreeElement treeParent) {
         TreeElement nextTreeElement;
         if (null != treeParent) {
             nextTreeElement = treeParent.getTreeNext();
@@ -326,8 +325,16 @@ public class RequirejsProjectComponent implements ProjectComponent {
         }
     }
 
-    public HashMap<String, VirtualFile> parseRequirejsConfig(TreeElement node) {
-        HashMap<String, VirtualFile> list = new HashMap<String, VirtualFile>();
+    public static String dequote(String text) {
+        return text.replace("\"", "").replace("'", "");
+    }
+
+    public static String dequoteAll(String text) {
+        return text.replaceAll("\"", "").replaceAll("'", "");
+    }
+
+    public Map<String, VirtualFile> parseRequirejsConfig(TreeElement node) {
+        Map<String, VirtualFile> list = new HashMap<String, VirtualFile>();
         if (null == node) {
             return list;
         }
@@ -341,19 +348,17 @@ public class RequirejsProjectComponent implements ProjectComponent {
                 } else {
                     TreeElement identifierString = (TreeElement) node.findChildByType(JSTokenTypes.STRING_LITERAL);
                     if (null != identifierString) {
-                        identifierName = identifierString.getText().replace("\"", "").replace("'", "");
+                        identifierName = dequote(identifierString.getText());
                     }
                 }
                 if (null != identifierName) {
                     if (identifierName.equals("baseUrl")) {
-                        String baseUrl;
-
-                        baseUrl = node
+                        String baseUrl = dequote(node
                                 .findChildByType(JSElementTypes.LITERAL_EXPRESSION)
-                                .getText().replace("\"", "").replace("'", "");
+                                .getText());
                         setBaseUrl(baseUrl);
-                    }
-                    if (identifierName.equals("paths")) {
+                        packageConfig.baseUrl = baseUrl;
+                    } else if (identifierName.equals("paths")) {
                         list.putAll(
                                 parseRequireJsPaths(
                                         (TreeElement) node
@@ -361,11 +366,16 @@ public class RequirejsProjectComponent implements ProjectComponent {
                                                 .getFirstChildNode()
                                 )
                         );
+                    } else if (identifierName.equals("packages")) {
+                        TreeElement packages = (TreeElement) node.findChildByType(JSElementTypes.ARRAY_LITERAL_EXPRESSION);
+                        LOG.debug("parsing packages");
+                        parsePackages(packages);
+                        LOG.debug("parsing packages done, found " + packageConfig.packages.size() + " packages");
                     }
                 }
             }
         } catch (NullPointerException exception) {
-            getLogger().error(exception.getMessage());
+            LOG.error(exception.getMessage(), exception);
         }
 
         TreeElement next = node.getTreeNext();
@@ -376,6 +386,62 @@ public class RequirejsProjectComponent implements ProjectComponent {
         return list;
     }
 
+    private void parsePackages(TreeElement node) {
+        TreeElement packageNode = (TreeElement) node.findChildByType(JSElementTypes.OBJECT_LITERAL_EXPRESSION);
+        parsePackage(packageNode);
+    }
+
+    private void parsePackage(TreeElement node) {
+        if (null == node) {
+            return;
+        }
+        if (node.getElementType() == JSElementTypes.OBJECT_LITERAL_EXPRESSION) {
+            Package p = new Package();
+            packageConfig.packages.add(p);
+            TreeElement prop = (TreeElement) node.findChildByType(JSElementTypes.PROPERTY);
+            parsePackageObject(prop, p);
+        }
+        TreeElement next = node.getTreeNext();
+        parsePackage(next);
+    }
+
+    private static void parsePackageObject(TreeElement node, Package p) {
+        if (null == node) {
+            return;
+        }
+
+        if (node.getElementType() == JSElementTypes.PROPERTY) {
+            TreeElement identifier = (TreeElement) node.findChildByType(JSTokenTypes.IDENTIFIER);
+            String identifierName = null;
+            if (null != identifier) {
+                identifierName = identifier.getText();
+            } else {
+                TreeElement identifierString = (TreeElement) node.findChildByType(JSTokenTypes.STRING_LITERAL);
+                if (null != identifierString) {
+                    identifierName = dequote(identifierString.getText());
+                }
+            }
+            if (null != identifierName) {
+                if (identifierName.equals("name")) {
+                    p.name = getLiteralValue(node);
+                } else if (identifierName.equals("location")) {
+                    p.location = getLiteralValue(node);
+                } else if (identifierName.equals("main")) {
+                    p.main = getLiteralValue(node);
+                }
+            }
+        }
+
+        TreeElement next = node.getTreeNext();
+        parsePackageObject(next, p);
+    }
+
+    private static String getLiteralValue(TreeElement node) {
+        return dequote(node
+                .findChildByType(JSElementTypes.LITERAL_EXPRESSION)
+                .getText());
+    }
+
     protected void setBaseUrl(String baseUrl) {
         if (baseUrl.startsWith("/")) {
             baseUrl = baseUrl.substring(1);
@@ -384,17 +450,12 @@ public class RequirejsProjectComponent implements ProjectComponent {
             baseUrl = StringUtil.trimEnd(baseUrl, "/");
         }
         requirejsBaseUrl = baseUrl;
-        baseUrl = settings
-                .publicPath
-                .concat("/")
-                .concat(baseUrl);
-        requirejsBaseUrlPath = project
-                .getBaseDir()
-                .findFileByRelativePath(baseUrl);
+        baseUrl = settings.publicPath + '/' + baseUrl;
+        requirejsBaseUrlPath = project.getBaseDir().findFileByRelativePath(baseUrl);
     }
 
-    protected HashMap<String, VirtualFile> parseRequireJsPaths(TreeElement node) {
-        HashMap<String, VirtualFile> list = new HashMap<String, VirtualFile>();
+    protected Map<String, VirtualFile> parseRequireJsPaths(TreeElement node) {
+        Map<String, VirtualFile> list = new HashMap<String, VirtualFile>();
         if (null == node) {
             return list;
         }
@@ -403,8 +464,8 @@ public class RequirejsProjectComponent implements ProjectComponent {
             TreeElement path = (TreeElement) node.findChildByType(JSElementTypes.LITERAL_EXPRESSION);
             TreeElement alias = node.getFirstChildNode();
             if (null != path && null != alias) {
-                String pathString = path.getText().replace("\"", "").replace("'", "");
-                String aliasString = alias.getText().replace("\"", "").replace("'", "");
+                String pathString = dequote(path.getText());
+                String aliasString = dequote(alias.getText());
 
                 VirtualFile rootDirectory;
                 if (pathString.startsWith(".")) {
@@ -420,7 +481,7 @@ public class RequirejsProjectComponent implements ProjectComponent {
                     if (null != directoryVF) {
                         list.put(aliasString, directoryVF);
                     } else {
-                        VirtualFile fileVF = rootDirectory.findFileByRelativePath(pathString.concat(".js"));
+                        VirtualFile fileVF = rootDirectory.findFileByRelativePath(pathString + ".js");
                         if (null != fileVF) {
                             list.put(aliasString, fileVF);
                         }
@@ -438,12 +499,10 @@ public class RequirejsProjectComponent implements ProjectComponent {
     }
 
     public PsiElement requireResolve(PsiElement element) {
-        String valuePath;
-        String value;
         VirtualFile targetFile;
 
-        value = element.getText().replace("'", "").replace("\"", "");
-        valuePath = value;
+        String value = dequote(element.getText());
+        String valuePath = value;
         if (valuePath.contains("!")) {
             String[] exclamationMarkSplit = valuePath.split("!");
             if (exclamationMarkSplit.length == 2) {
@@ -454,7 +513,7 @@ public class RequirejsProjectComponent implements ProjectComponent {
         }
 
         if (valuePath.startsWith("/")) {
-            targetFile = findFileByPath(getWebDir(), valuePath);
+            targetFile = FileUtils.findFileByPath(getWebDir(), valuePath);
             if (null != targetFile) {
                 return PsiManager.getInstance(element.getProject()).findFile(targetFile);
             } else {
@@ -463,14 +522,14 @@ public class RequirejsProjectComponent implements ProjectComponent {
         } else if (valuePath.startsWith(".")) {
             PsiDirectory fileDirectory = element.getContainingFile().getContainingDirectory();
             if (null != fileDirectory) {
-                targetFile = findFileByPath(fileDirectory.getVirtualFile(), valuePath);
+                targetFile = FileUtils.findFileByPath(fileDirectory.getVirtualFile(), valuePath);
                 if (null != targetFile) {
                     return PsiManager.getInstance(element.getProject()).findFile(targetFile);
                 }
             }
         }
 
-        targetFile = findFileByPath(getBaseUrlPath(true), valuePath);
+        targetFile = FileUtils.findFileByPath(getBaseUrlPath(true), valuePath);
 
         if (targetFile != null) {
             return PsiManager.getInstance(element.getProject()).findFile(targetFile);
@@ -486,7 +545,7 @@ public class RequirejsProjectComponent implements ProjectComponent {
         if (null != getConfigPaths()) {
             for (Map.Entry<String, VirtualFile> entry : getConfigPaths().entrySet()) {
                 if (valuePath.startsWith(entry.getKey())) {
-                    targetFile = findFileByPath(entry.getValue(), valuePath.replaceFirst(entry.getKey(), ""));
+                    targetFile = FileUtils.findFileByPath(entry.getValue(), valuePath.replaceFirst(entry.getKey(), ""));
                     if (null != targetFile) {
                         return PsiManager.getInstance(element.getProject()).findFile(targetFile);
                     }
@@ -494,34 +553,45 @@ public class RequirejsProjectComponent implements ProjectComponent {
             }
         }
 
+        // check for packages
+        String packageName;
+        String moduleId = null;
+        if (value.indexOf('/') == -1) {
+            packageName = value;
+        } else {
+            packageName = value.substring(0, value.indexOf('/'));
+            moduleId = value.substring(value.indexOf('/') + 1);
+        }
+        for (Package pkg : packageConfig.packages) {
+            if (pkg.name.equals(packageName)) {
+                if (moduleId == null) {
+                    moduleId = pkg.main;
+                }
+                targetFile = element.getProject().getBaseDir().findFileByRelativePath(pkg.location + '/' + moduleId + ".js");
+                if (null != targetFile) {
+                    return PsiManager.getInstance(element.getProject()).findFile(targetFile);
+                }
+            }
+        }
+
+        LOG.debug("Could not resolve reference for " + value);
         return null;
     }
 
-    protected VirtualFile findFileByPath(VirtualFile path, String valuePath) {
-        VirtualFile file = path.findFileByRelativePath(valuePath);
-        if (null == file || file.isDirectory()) {
-            file = path.findFileByRelativePath(valuePath.concat(".js"));
-        }
-
-        return file;
-    }
-
-    public ArrayList<String> getCompletion(PsiElement element) {
-        ArrayList<String> completions = new ArrayList<String>();
+    public List<String> getCompletion(PsiElement element) {
+        List<String> completions = new ArrayList<String>();
         String value = element.getText().replace("'", "").replace("\"", "").replace("IntellijIdeaRulezzz ", "");
         String valuePath = value;
-        Boolean exclamationMark = value.contains("!");
-        String exclamationMarkBefore = "";
-        Boolean oneDot;
-        Integer doubleDotCount = 0;
-        Boolean startSlash;
-        Boolean notEndSlash = false;
+        boolean exclamationMark = value.contains("!");
+        String plugin = "";
+        int doubleDotCount = 0;
+        boolean notEndSlash = false;
         String pathOnDots = "";
         String dotString = "";
 
         if (exclamationMark) {
             String[] exclamationMarkSplit = valuePath.split("!");
-            exclamationMarkBefore = exclamationMarkSplit[0];
+            plugin = exclamationMarkSplit[0];
             if (exclamationMarkSplit.length == 2) {
                 valuePath = exclamationMarkSplit[1];
             } else {
@@ -531,10 +601,11 @@ public class RequirejsProjectComponent implements ProjectComponent {
 
         if (exclamationMark) {
             for (String moduleName : getModulesNames()) {
-                completions.add(exclamationMarkBefore + "!" + moduleName);
+                completions.add(plugin + '!' + moduleName);
             }
         } else {
             completions.addAll(getModulesNames());
+            // expand current package
         }
 
         PsiDirectory fileDirectory = element
@@ -552,36 +623,29 @@ public class RequirejsProjectComponent implements ProjectComponent {
             filePath = filePath.substring(1);
         }
 
-        startSlash = valuePath.startsWith("/");
+        boolean startSlash = valuePath.startsWith("/");
         if (startSlash) {
             valuePath = valuePath.substring(1);
         }
 
-        oneDot = valuePath.startsWith("./");
+        boolean oneDot = valuePath.startsWith("./");
         if (oneDot) {
-            if (filePath.equals("")) {
+            if (filePath.isEmpty()) {
                 valuePath = valuePath.substring(2);
             } else {
-                try {
-                    valuePath = valuePath
-                            .replaceFirst(
-                                    ".",
-                                    filePath
-                            );
-                } catch (NullPointerException ignored) {
-                }
+                valuePath = valuePath.replaceFirst(".", filePath);
             }
         }
 
         if (valuePath.startsWith("..")) {
-            doubleDotCount = getDoubleDotCount(valuePath);
+            doubleDotCount = FileUtils.getDoubleDotCount(valuePath);
             String[] pathsOfPath = filePath.split("/");
             if (pathsOfPath.length > 0) {
                 if (doubleDotCount > 0) {
-                    if (doubleDotCount > pathsOfPath.length || filePath.equals("")) {
+                    if (doubleDotCount > pathsOfPath.length || filePath.isEmpty()) {
                         return new ArrayList<String>();
                     }
-                    pathOnDots = getNormalizedPath(doubleDotCount, pathsOfPath);
+                    pathOnDots = FileUtils.getNormalizedPath(doubleDotCount, pathsOfPath);
                     dotString = StringUtil.repeat("../", doubleDotCount);
                     if (valuePath.endsWith("..")) {
                         notEndSlash = true;
@@ -594,20 +658,40 @@ public class RequirejsProjectComponent implements ProjectComponent {
             }
         }
 
-        ArrayList<String> allFiles = getAllFilesInDirectory(getWebDir(), getWebDir().getPath().concat("/"), "");
-        ArrayList<String> aliasFiles = getAllFilesForConfigPaths();
+        List<String> allFiles = FileUtils.getAllFilesInDirectory(getWebDir(), getWebDir().getPath() + '/', "");
+        List<String> aliasFiles = getAllFilesForConfigPaths();
+
+        // get project relative path
+        String relativePath = fileDirectory.getVirtualFile().getPath().substring(project.getBaseDir().getPath().length() + 1);
+        String relativeFilePath = element.getContainingFile().getOriginalFile().getVirtualFile().getPath().substring(project.getBaseDir().getPath().length() + 1);
+
+        for (Package pkg : packageConfig.packages) {
+            if (relativePath.startsWith(pkg.location)) {
+                VirtualFile pkgLocation = project.getBaseDir().findFileByRelativePath(pkg.location);
+                List<String> packageFiles = FileUtils.getAllFilesInDirectory(pkgLocation, pkgLocation.getPath(), pkg.name);
+                for (String file : packageFiles) {
+                    // filter out entry
+                    // TODO filter out current file
+                    String moduleId = pkg.name + '/' + relativeFilePath.substring(pkg.location.length() + 1);
+                    if (!file.equals(pkg.name + '/' + pkg.main + ".js") && file.endsWith(".js") && !file.equals(moduleId)) {
+                        aliasFiles.add(file);
+                    }
+                }
+                break;
+            }
+        }
 
         String valuePathForAlias = valuePath;
-        if (!oneDot && 0 == doubleDotCount && !startSlash && !getBaseUrl().equals("")) {
-            valuePath = getBaseUrl().concat("/").concat(valuePath);
+        if (!oneDot && 0 == doubleDotCount && !startSlash && !getBaseUrl().isEmpty()) {
+            valuePath = FileUtils.join(getBaseUrl(), valuePath);
         }
 
         for (String file : allFiles) {
             if (file.startsWith(valuePath)) {
                 // Prepare file path
                 if (oneDot) {
-                    if (filePath.equals("")) {
-                        file = "./".concat(file);
+                    if (filePath.isEmpty()) {
+                        file = "./" + file;
                     } else {
                         file = file.replaceFirst(filePath, ".");
                     }
@@ -618,99 +702,49 @@ public class RequirejsProjectComponent implements ProjectComponent {
                         file = file.replace(pathOnDots, "");
                     }
                     if (notEndSlash) {
-                        file = "/".concat(file);
+                        file = '/' + file;
                     }
-                    file = dotString.concat(file);
+                    file = dotString + file;
                 }
 
-                if (!oneDot && 0 == doubleDotCount && !startSlash && !getBaseUrl().equals("")) {
+                if (!oneDot && 0 == doubleDotCount && !startSlash && !getBaseUrl().isEmpty()) {
                     file = file.substring(getBaseUrl().length() + 1);
                 }
 
                 if (startSlash) {
-                    file = "/".concat(file);
+                    file = '/' + file;
                 }
 
-                if (exclamationMark) {
-                    if (file.endsWith(".js")) {
-                        file = file.replace(".js", "");
-                    }
-                    completions.add(exclamationMarkBefore + "!" + file);
-                } else if (file.endsWith(".js")) {
-                    completions.add(file.replace(".js", ""));
-                }
+                addToCompletion(completions, file, exclamationMark, plugin);
             }
         }
 
         for (String file : aliasFiles) {
             if (file.startsWith(valuePathForAlias)) {
-                if (exclamationMark) {
-                    if (file.endsWith(".js")) {
-                        file = file.replace(".js", "");
-                    }
-                    completions.add(exclamationMarkBefore + "!" + file);
-                } else if (file.endsWith(".js")) {
-                    completions.add(file.replace(".js", ""));
-                }
+                addToCompletion(completions, file, exclamationMark, plugin);
             }
         }
 
         return completions;
     }
 
-    protected String getNormalizedPath(Integer doubleDotCount, String[] pathsOfPath) {
-        StringBuilder newValuePath = new StringBuilder();
-        for (int i = 0; i < pathsOfPath.length - doubleDotCount; i++) {
-            if (0 != i) {
-                newValuePath.append("/");
-            }
-            newValuePath.append(pathsOfPath[i]);
+    private static void addToCompletion(List<String> completions, String file, boolean exclamationMark, String plugin) {
+        if (exclamationMark) {
+            file = FileUtils.removeExt(file, ".js");
+            completions.add(plugin + '!' + file);
+        } else if (file.endsWith(".js")) {
+            completions.add(file.replace(".js", ""));
         }
-        return newValuePath.toString();
     }
 
-    protected Integer getDoubleDotCount(String valuePath) {
-        Integer doubleDotCount = (valuePath.length() - valuePath.replaceAll("\\.\\.", "").length()) / 2;
+    protected List<String> getAllFilesForConfigPaths() {
+        List<String> strings = new ArrayList<String>();
 
-        Boolean doubleDotCountTrues = false;
-
-        while (!doubleDotCountTrues && 0 != doubleDotCount) {
-            if (valuePath.startsWith(StringUtil.repeat("../", doubleDotCount))) {
-                doubleDotCountTrues = true;
-            } else if (valuePath.startsWith(StringUtil.repeat("../", doubleDotCount - 1) + "..")) {
-                doubleDotCountTrues = true;
-            } else {
-                doubleDotCount--;
-            }
-        }
-        return doubleDotCount;
-    }
-
-    protected ArrayList<String> getAllFilesInDirectory(VirtualFile directory, String target, String replacement) {
-        ArrayList<String> files = new ArrayList<String>();
-
-        VirtualFile[] childrens = directory.getChildren();
-        if (childrens.length != 0) {
-            for (VirtualFile children : childrens) {
-                if (children instanceof VirtualDirectoryImpl) {
-                    files.addAll(getAllFilesInDirectory(children, target, replacement));
-                } else if (children instanceof VirtualFileImpl) {
-                    files.add(children.getPath().replace(target, replacement));
-                }
-            }
-        }
-
-        return files;
-    }
-
-    protected ArrayList<String> getAllFilesForConfigPaths() {
-        ArrayList<String> strings = new ArrayList<String>();
-
-        HashMap<String, VirtualFile> configPaths = getConfigPaths();
+        Map<String, VirtualFile> configPaths = getConfigPaths();
         if (null != configPaths) {
             for (Map.Entry<String, VirtualFile> entry : configPaths.entrySet()) {
                 strings.addAll(
-                        getAllFilesInDirectory(
+                        FileUtils.getAllFilesInDirectory(
                                 entry.getValue(),
                                 entry.getValue().getPath(),
                                 entry.getKey()
