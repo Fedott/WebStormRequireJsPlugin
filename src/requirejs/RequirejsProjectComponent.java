@@ -12,6 +12,9 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileAdapter;
+import com.intellij.openapi.vfs.VirtualFileEvent;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.newvfs.impl.VirtualDirectoryImpl;
 import com.intellij.openapi.vfs.newvfs.impl.VirtualFileImpl;
 import com.intellij.psi.PsiDirectory;
@@ -28,8 +31,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-public class RequirejsProjectComponent implements ProjectComponent
-{
+public class RequirejsProjectComponent implements ProjectComponent {
     protected Project project;
     protected Settings settings;
     protected boolean settingValidStatus;
@@ -43,6 +45,8 @@ public class RequirejsProjectComponent implements ProjectComponent
     protected HashMap<String, VirtualFile> requirejsConfigModules;
     protected HashMap<String, VirtualFile> requirejsConfigPaths;
 
+    private RequireConfigVfsListener vfsListener;
+
     public RequirejsProjectComponent(Project project) {
         this.project = project;
         settings = Settings.getInstance(project);
@@ -55,9 +59,21 @@ public class RequirejsProjectComponent implements ProjectComponent
         }
     }
 
+    public void watchConfigFile() {
+        // Add the Virtual File listener
+        vfsListener = new RequireConfigVfsListener();
+        VirtualFileManager.getInstance().addVirtualFileListener(vfsListener, project);
+    }
+
+    public void stopWatchConfigFile() {
+        if (vfsListener == null) {
+            return;
+        }
+        VirtualFileManager.getInstance().removeVirtualFileListener(vfsListener);
+    }
+
     @Override
     public void projectClosed() {
-
     }
 
     @Override
@@ -69,7 +85,6 @@ public class RequirejsProjectComponent implements ProjectComponent
 
     @Override
     public void disposeComponent() {
-
     }
 
     @NotNull
@@ -86,7 +101,7 @@ public class RequirejsProjectComponent implements ProjectComponent
         return Settings.getInstance(project).pluginEnabled;
     }
 
-    public boolean isSettingsValid(){
+    public boolean isSettingsValid() {
         if (!settings.getVersion().equals(settingValidVersion)) {
             validateSettings();
             settingValidVersion = settings.getVersion();
@@ -94,8 +109,7 @@ public class RequirejsProjectComponent implements ProjectComponent
         return settingValidStatus;
     }
 
-    public boolean validateSettings()
-    {
+    public boolean validateSettings() {
         if (null == getWebDir()) {
             showErrorConfigNotification(
                     "Public directory not found. Path " +
@@ -105,6 +119,11 @@ public class RequirejsProjectComponent implements ProjectComponent
             getLogger().debug("Public directory not found");
             settingValidStatus = false;
             return false;
+        }
+        if (isEnabled()) {
+            watchConfigFile();
+        } else {
+            stopWatchConfigFile();
         }
 
         settingValidStatus = true;
@@ -140,8 +159,7 @@ public class RequirejsProjectComponent implements ProjectComponent
         return requirejsConfigPaths;
     }
 
-    public ArrayList<String> getModulesNames()
-    {
+    public ArrayList<String> getModulesNames() {
         ArrayList<String> modules = new ArrayList<String>();
         if (requirejsConfigModules == null) {
             if (!parseRequirejsConfig()) {
@@ -154,8 +172,7 @@ public class RequirejsProjectComponent implements ProjectComponent
         return modules;
     }
 
-    public VirtualFile getModuleVFile(String alias)
-    {
+    public VirtualFile getModuleVFile(String alias) {
         if (requirejsConfigModules == null) {
             if (!parseRequirejsConfig()) {
                 return null;
@@ -165,8 +182,7 @@ public class RequirejsProjectComponent implements ProjectComponent
         return requirejsConfigModules.get(alias);
     }
 
-    public String getBaseUrl()
-    {
+    public String getBaseUrl() {
         if (null == requirejsBaseUrl) {
             VirtualFile baseUrlPath = getBaseUrlPath(true);
             if (null != baseUrlPath) {
@@ -183,8 +199,7 @@ public class RequirejsProjectComponent implements ProjectComponent
         return requirejsBaseUrl;
     }
 
-    public VirtualFile getBaseUrlPath(Boolean parseConfig)
-    {
+    public VirtualFile getBaseUrlPath(Boolean parseConfig) {
         if (null == requirejsBaseUrlPath) {
             if (parseConfig) {
                 parseRequirejsConfig();
@@ -197,12 +212,11 @@ public class RequirejsProjectComponent implements ProjectComponent
         return requirejsBaseUrlPath;
     }
 
-    protected VirtualFile getConfigFileDir()
-    {
+    protected VirtualFile getConfigFileDir() {
         VirtualFile mainJsVirtualFile = getWebDir()
-            .findFileByRelativePath(
-                    settings.configFilePath
-            );
+                .findFileByRelativePath(
+                        settings.configFilePath
+                );
         if (null != mainJsVirtualFile) {
             return mainJsVirtualFile.getParent();
         } else {
@@ -210,8 +224,7 @@ public class RequirejsProjectComponent implements ProjectComponent
         }
     }
 
-    protected boolean parseRequirejsConfig()
-    {
+    protected boolean parseRequirejsConfig() {
         VirtualFile mainJsVirtualFile = getWebDir()
                 .findFileByRelativePath(
                         settings.configFilePath
@@ -337,7 +350,7 @@ public class RequirejsProjectComponent implements ProjectComponent
 
                         baseUrl = node
                                 .findChildByType(JSElementTypes.LITERAL_EXPRESSION)
-                                .getText().replace("\"", "").replace("'","");
+                                .getText().replace("\"", "").replace("'", "");
                         setBaseUrl(baseUrl);
                     }
                     if (identifierName.equals("paths")) {
@@ -390,8 +403,8 @@ public class RequirejsProjectComponent implements ProjectComponent
             TreeElement path = (TreeElement) node.findChildByType(JSElementTypes.LITERAL_EXPRESSION);
             TreeElement alias = node.getFirstChildNode();
             if (null != path && null != alias) {
-                String pathString = path.getText().replace("\"","").replace("'", "");
-                String aliasString = alias.getText().replace("\"","").replace("'", "");
+                String pathString = path.getText().replace("\"", "").replace("'", "");
+                String aliasString = alias.getText().replace("\"", "").replace("'", "");
 
                 VirtualFile rootDirectory;
                 if (pathString.startsWith(".")) {
@@ -424,8 +437,7 @@ public class RequirejsProjectComponent implements ProjectComponent
         return list;
     }
 
-    public PsiElement requireResolve(PsiElement element)
-    {
+    public PsiElement requireResolve(PsiElement element) {
         String valuePath;
         String value;
         VirtualFile targetFile;
@@ -494,8 +506,7 @@ public class RequirejsProjectComponent implements ProjectComponent
         return file;
     }
 
-    public ArrayList<String> getCompletion(PsiElement element)
-    {
+    public ArrayList<String> getCompletion(PsiElement element) {
         ArrayList<String> completions = new ArrayList<String>();
         String value = element.getText().replace("'", "").replace("\"", "").replace("IntellijIdeaRulezzz ", "");
         String valuePath = value;
@@ -557,14 +568,15 @@ public class RequirejsProjectComponent implements ProjectComponent
                                     ".",
                                     filePath
                             );
-                } catch (NullPointerException ignored) {}
+                } catch (NullPointerException ignored) {
+                }
             }
         }
 
         if (valuePath.startsWith("..")) {
             doubleDotCount = getDoubleDotCount(valuePath);
             String[] pathsOfPath = filePath.split("/");
-            if ( pathsOfPath.length > 0) {
+            if (pathsOfPath.length > 0) {
                 if (doubleDotCount > 0) {
                     if (doubleDotCount > pathsOfPath.length || filePath.equals("")) {
                         return new ArrayList<String>();
@@ -708,5 +720,24 @@ public class RequirejsProjectComponent implements ProjectComponent
         }
 
         return strings;
+    }
+
+    // -------------------------------------------------------------------------
+    // RequireConfigVfsListener
+    // -------------------------------------------------------------------------
+    private class RequireConfigVfsListener extends VirtualFileAdapter {
+        public void contentsChanged(@NotNull VirtualFileEvent event) {
+            VirtualFile publicPath = project.getBaseDir().findFileByRelativePath(settings.publicPath);
+            if (publicPath == null || !publicPath.exists()) {
+                return;
+            }
+            VirtualFile confFile = publicPath.findChild(settings.configFilePath);
+            if (confFile == null || !confFile.exists() || !event.getFile().equals(confFile)) {
+                return;
+            }
+            LOG.debug("RequireConfigVfsListener contentsChanged");
+//            RequirejsProjectComponent.this.project.getComponent(RequirejsProjectComponent.class).parseRequirejsConfig();
+            RequirejsProjectComponent.this.parseRequirejsConfig();
+        }
     }
 }
