@@ -1,7 +1,7 @@
 <idea-plugin version="2">
   <id>com.fedot.idea.requirejs</id>
   <name>Require.js plugin</name>
-  <version>0.15</version>
+  <version>0.16</version>
   <vendor email="fedotru@gmail.com" url="http://guthub.com/Fedott/">Vladimir Fedorov</vendor>
 
   <depends>com.intellij.modules.platform</depends>

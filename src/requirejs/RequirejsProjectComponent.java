@@ -17,8 +17,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileAdapter;
 import com.intellij.openapi.vfs.VirtualFileEvent;
 import com.intellij.openapi.vfs.VirtualFileManager;
-import com.intellij.openapi.vfs.newvfs.impl.VirtualDirectoryImpl;
-import com.intellij.openapi.vfs.newvfs.impl.VirtualFileImpl;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -47,6 +45,7 @@ public class RequirejsProjectComponent implements ProjectComponent {
 
     private RequireConfigVfsListener vfsListener;
     public PackageConfig packageConfig;
+    private boolean restrictAccessToPackage = false;
 
     public RequirejsProjectComponent(Project project) {
         this.project = project;
@@ -666,18 +665,20 @@ public class RequirejsProjectComponent implements ProjectComponent {
         String relativeFilePath = element.getContainingFile().getOriginalFile().getVirtualFile().getPath().substring(project.getBaseDir().getPath().length() + 1);
 
         for (Package pkg : packageConfig.packages) {
-            if (relativePath.startsWith(pkg.location)) {
+            if (!restrictAccessToPackage || relativePath.startsWith(pkg.location)) {
                 VirtualFile pkgLocation = project.getBaseDir().findFileByRelativePath(pkg.location);
                 List<String> packageFiles = FileUtils.getAllFilesInDirectory(pkgLocation, pkgLocation.getPath(), pkg.name);
                 for (String file : packageFiles) {
                     // filter out entry
                     // TODO filter out current file
                     String moduleId = pkg.name + '/' + relativeFilePath.substring(pkg.location.length() + 1);
-                    if (!file.equals(pkg.name + '/' + pkg.main + ".js") && file.endsWith(".js") && !file.equals(moduleId)) {
+                    if (isModuleAccessible(pkg, file, moduleId)) {
                         aliasFiles.add(file);
                     }
                 }
-                break;
+                if (restrictAccessToPackage) {
+                    break;
+                }
             }
         }
 
@@ -726,6 +727,14 @@ public class RequirejsProjectComponent implements ProjectComponent {
         }
 
         return completions;
+    }
+
+    private boolean isModuleAccessible(Package pkg, String file, String moduleId) {
+        if (restrictAccessToPackage) {
+            return !file.equals(pkg.name + '/' + pkg.main + ".js") && file.endsWith(".js") && !file.equals(moduleId);
+        }
+        return file.endsWith(".js") && !file.equals(moduleId);
+//        return (restrictAccessToPackage && !file.equals(pkg.name + '/' + pkg.main + ".js")) && file.endsWith(".js") && !file.equals(moduleId);
     }
 
     private static void addToCompletion(List<String> completions, String file, boolean exclamationMark, String plugin) {
