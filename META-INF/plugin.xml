@@ -1,7 +1,7 @@
 <idea-plugin version="2">
   <id>com.fedot.idea.requirejs</id>
   <name>Require.js plugin</name>
-  <version>0.15</version>
+  <version>0.16</version>
   <vendor email="fedotru@gmail.com" url="http://guthub.com/Fedott/">Vladimir Fedorov</vendor>
 
   <depends>com.intellij.modules.platform</depends>
@@ -16,6 +16,9 @@
       ]]></description>
 
   <change-notes><![CDATA[
+      Version 0.16 <br />
+        - Added support for requirejs packages <br />
+        - Plugin will now detect changes in the requirejs config file and load them automatically <br />
       Version 0.15 <br />
         - Added support config object as the global variable require <br />
         - Added support define config in html file <br />
