@@ -17,6 +17,7 @@
 
   <change-notes><![CDATA[
       Version 0.16 <br />
+        Very thanks, idok (https://github.com/idok) <br />
         - Added support for requirejs packages <br />
         - Plugin will now detect changes in the requirejs config file and load them automatically <br />
       Version 0.15 <br />
