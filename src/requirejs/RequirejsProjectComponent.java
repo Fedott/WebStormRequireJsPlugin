@@ -555,11 +555,11 @@ public class RequirejsProjectComponent implements ProjectComponent {
         // check for packages
         String packageName;
         String moduleId = null;
-        if (value.indexOf('/') == -1) {
-            packageName = value;
+        if (valuePath.indexOf('/') == -1) {
+            packageName = valuePath;
         } else {
-            packageName = value.substring(0, value.indexOf('/'));
-            moduleId = value.substring(value.indexOf('/') + 1);
+            packageName = valuePath.substring(0, valuePath.indexOf('/'));
+            moduleId = valuePath.substring(valuePath.indexOf('/') + 1);
         }
         for (Package pkg : packageConfig.packages) {
             if (pkg.name.equals(packageName)) {
