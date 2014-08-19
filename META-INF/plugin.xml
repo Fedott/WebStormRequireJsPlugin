@@ -1,8 +1,8 @@
-<idea-plugin version="2">
+<idea-plugin version="2" url="https://github.com/Fedott/WebStormRequireJsPlugin">
   <id>com.fedot.idea.requirejs</id>
   <name>Require.js plugin</name>
-  <version>0.16</version>
-  <vendor email="fedotru@gmail.com" url="http://guthub.com/Fedott/">Vladimir Fedorov</vendor>
+  <version>0.17</version>
+  <vendor email="fedotru@gmail.com" url="http://github.com/Fedott/">Vladimir Fedorov</vendor>
 
   <depends>com.intellij.modules.platform</depends>
   <depends>JavaScript</depends>
@@ -16,6 +16,8 @@
       ]]></description>
 
   <change-notes><![CDATA[
+      Version 0.17 <br />
+        - Fix issue with requirejs loader plugin and packages reference resolving <br />
       Version 0.16 <br />
         Very thanks, idok (https://github.com/idok) <br />
         - Added support for requirejs packages <br />
