@@ -64,9 +64,8 @@ public class ExclamationMarkTest extends RequirejsTestCase {
 
         // 3
         strings = getCompletionStringsForHumanPosition(4, 43);
-        assertCompletionList(Arrays.asList(
-                "moduleOne!block"
-        ), strings);
+        assert strings == null;
+        assertCompletionSingle("moduleOne!block");
         // assertNull(strings);
     }
 
@@ -90,9 +89,8 @@ public class ExclamationMarkTest extends RequirejsTestCase {
 
         // 5
         strings = getCompletionStringsForHumanPosition(6, 44);
-        assertCompletionList(Arrays.asList(
-                "moduleOne!./fileWithExclamationMarkTest"
-        ), strings);
+        assert strings == null;
+        assertCompletionSingle("moduleOne!./fileWithExclamationMarkTest");
     }
 
     public void testCompletion6() {

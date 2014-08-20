@@ -2,6 +2,7 @@ package requirejs;
 
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.openapi.editor.LogicalPosition;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl;
 import requirejs.settings.Settings;
@@ -60,88 +61,50 @@ public class CompletionPathWithDotTest extends RequirejsTestCase
         myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(3, 56));
         myFixture.complete(CompletionType.BASIC, 1);
         strings = myFixture.getLookupElementStrings();
-        assertTrue(
-                strings.containsAll(
-                        Arrays.asList(
-                                "./block"
-                        )
-                )
-        );
-        assertEquals(1, strings.size());
+        assert strings == null;
+        assertCompletionSingle("./block");
 
         // WithOneDotAndDirectory
         myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(4, 61));
         myFixture.complete(CompletionType.BASIC, 1);
         strings = myFixture.getLookupElementStrings();
-        assertTrue(
-                strings.containsAll(
-                        Arrays.asList(
-                                "./childBlocks/childBlock"
-                        )
-                )
-        );
-        assertEquals(1, strings.size());
+        assert strings == null;
+        assertCompletionSingle("./childBlocks/childBlock");
 
         // WithOneDotAndDirectoryAndSlash
         myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(5, 70));
         myFixture.complete(CompletionType.BASIC, 1);
         strings = myFixture.getLookupElementStrings();
-        assertTrue(
-                strings.containsAll(
-                        Arrays.asList(
-                                "./childBlocks/childBlock"
-                        )
-                )
-        );
-        assertEquals(1, strings.size());
+        assert strings == null;
+        assertCompletionSingle("./childBlocks/childBlock");
 
         // WithOneDotAndDirectoryAndSlashTwoChars
         myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(6, 80));
         myFixture.complete(CompletionType.BASIC, 1);
         strings = myFixture.getLookupElementStrings();
-        assertTrue(
-                strings.containsAll(
-                        Arrays.asList(
-                                "./childBlocks/childBlock"
-                        )
-                )
-        );
-        assertEquals(1, strings.size());
+        assert strings == null;
+        assertCompletionSingle("./childBlocks/childBlock");
     }
 
     public void testFileOnRootProjectDir()
     {
-        String projectTmpPath = getProject()
-                .getBaseDir()
-                .getChildren()[0]
-                .getName();
-
         Settings.getInstance(getProject()).publicPath = "";
-        PsiFile fileOnRoot = myFixture.addFileToProject("../fileOnRootDir.js", "define(function(require) {\n" +
-                "    var testCompletion = require('./');\n" +
-                "})");
-        ((CodeInsightTestFixtureImpl) myFixture).openFileInEditor(fileOnRoot.getVirtualFile());
 
+        myFixture.configureByFile("parentWebPathFile.js");
 
-
-        myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(1, 36));
+        myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(2, 36));
         myFixture.complete(CompletionType.BASIC, 1);
         List<String> strings = myFixture.getLookupElementStrings();
         assert strings != null;
-        assertTrue(
-                strings.containsAll(
-                        Arrays.asList(
-                                "./fileOnRootDir",
-                                "./" + projectTmpPath + "/public/blocks/block",
-                                "./" + projectTmpPath + "/public/blocks/childWebPathFile",
-                                "./" + projectTmpPath + "/public/blocks/fileWithDotPath",
-                                "./" + projectTmpPath + "/public/blocks/fileWithTwoDotPath",
-                                "./" + projectTmpPath + "/public/blocks/childBlocks/childBlock",
-                                "./" + projectTmpPath + "/public/main",
-                                "./" + projectTmpPath + "/public/rootWebPathFile"
-                        )
-                )
-        );
-        assertEquals(8, strings.size());
+        assertCompletionList(Arrays.asList(
+                "./parentWebPathFile",
+                "./public/blocks/block",
+                "./public/blocks/childWebPathFile",
+                "./public/blocks/fileWithDotPath",
+                "./public/blocks/fileWithTwoDotPath",
+                "./public/blocks/childBlocks/childBlock",
+                "./public/main",
+                "./public/rootWebPathFile"
+        ), strings);
     }
 }

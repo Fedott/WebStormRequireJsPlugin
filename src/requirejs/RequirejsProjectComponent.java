@@ -12,6 +12,7 @@ import com.intellij.notification.Notifications;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileAdapter;
@@ -44,7 +45,7 @@ public class RequirejsProjectComponent implements ProjectComponent {
     protected Map<String, VirtualFile> requirejsConfigPaths;
 
     private RequireConfigVfsListener vfsListener;
-    public PackageConfig packageConfig;
+    public PackageConfig packageConfig = new PackageConfig();
     private boolean restrictAccessToPackage = false;
 
     public RequirejsProjectComponent(Project project) {
@@ -138,10 +139,11 @@ public class RequirejsProjectComponent implements ProjectComponent {
     }
 
     public VirtualFile getWebDir() {
+        VirtualFile firstContentRoot = ProjectRootManager.getInstance(project).getContentRoots()[0];
         if (settings.publicPath.isEmpty()) {
-            return project.getBaseDir();
+            return firstContentRoot;
         }
-        return project.getBaseDir().findFileByRelativePath(settings.publicPath);
+        return firstContentRoot.findFileByRelativePath(settings.publicPath);
     }
 
     public void showInfoNotification(String content, NotificationType type) {
@@ -240,7 +242,6 @@ public class RequirejsProjectComponent implements ProjectComponent {
             PsiFile mainJs = PsiManager.getInstance(project).findFile(mainJsVirtualFile);
             if (mainJs instanceof JSFileImpl || mainJs instanceof XmlFileImpl) {
                 Map<String, VirtualFile> allConfigPaths;
-                packageConfig = new PackageConfig();
                 if (((PsiFileImpl) mainJs).getTreeElement() == null) {
                     allConfigPaths = parseMainJsFile(((PsiFileImpl) mainJs).calcTreeElement());
                 } else {
@@ -287,9 +288,9 @@ public class RequirejsProjectComponent implements ProjectComponent {
                     TreeElement nextTreeElement = treeParent.getTreeNext();
                     if (null != firstTreeChild) {
                         list.putAll(
-                                parseRequirejsConfig((TreeElement) firstTreeChild
-                                                .getFirstChildNode()
-                                )
+                            parseRequirejsConfig((TreeElement) firstTreeChild
+                                .getFirstChildNode()
+                            )
                         );
                     } else if (null != nextTreeElement && nextTreeElement.getElementType() == JSTokenTypes.DOT) {
                         nextTreeElement = nextTreeElement.getTreeNext();
@@ -450,7 +451,9 @@ public class RequirejsProjectComponent implements ProjectComponent {
         }
         requirejsBaseUrl = baseUrl;
         baseUrl = settings.publicPath + '/' + baseUrl;
-        requirejsBaseUrlPath = project.getBaseDir().findFileByRelativePath(baseUrl);
+
+        VirtualFile firstContentRoot = ProjectRootManager.getInstance(project).getContentRoots()[0];
+        requirejsBaseUrlPath = firstContentRoot.findFileByRelativePath(baseUrl);
     }
 
     protected Map<String, VirtualFile> parseRequireJsPaths(TreeElement node) {
@@ -661,8 +664,14 @@ public class RequirejsProjectComponent implements ProjectComponent {
         List<String> aliasFiles = getAllFilesForConfigPaths();
 
         // get project relative path
-        String relativePath = fileDirectory.getVirtualFile().getPath().substring(project.getBaseDir().getPath().length() + 1);
-        String relativeFilePath = element.getContainingFile().getOriginalFile().getVirtualFile().getPath().substring(project.getBaseDir().getPath().length() + 1);
+        VirtualFile contentRoot = ProjectRootManager.getInstance(project).getFileIndex().getContentRootForFile(fileDirectory.getVirtualFile());
+        String relativePath;
+        if (fileDirectory.getVirtualFile().getPath().equals(contentRoot.getPath())) {
+            relativePath = "";
+        } else {
+            relativePath = fileDirectory.getVirtualFile().getPath().substring(contentRoot.getPath().length() + 1);
+        }
+        String relativeFilePath = element.getContainingFile().getOriginalFile().getVirtualFile().getPath().substring(contentRoot.getPath().length() + 1);
 
         for (Package pkg : packageConfig.packages) {
             if (!restrictAccessToPackage || relativePath.startsWith(pkg.location)) {

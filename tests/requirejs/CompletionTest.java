@@ -96,29 +96,15 @@ public class CompletionTest extends RequirejsTestCase
         myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(5, 56));
         myFixture.complete(CompletionType.BASIC, 1);
         strings = myFixture.getLookupElementStrings();
-        assert strings != null;
-        assertTrue(
-                strings.containsAll(
-                        Arrays.asList(
-                                "blocks/childBlocks/childBlock"
-                        )
-                )
-        );
-        assertEquals(1, strings.size());
+        assert strings == null;
+        assertCompletionSingle("blocks/childBlocks/childBlock");
 
         // TwoDirectoryWithSlash
         myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(6, 66));
         myFixture.complete(CompletionType.BASIC, 1);
         strings = myFixture.getLookupElementStrings();
-        assert strings != null;
-        assertTrue(
-                strings.containsAll(
-                        Arrays.asList(
-                                "blocks/childBlocks/childBlock"
-                        )
-                )
-        );
-        assertEquals(1, strings.size());
+        assert strings == null;
+        assertCompletionSingle("blocks/childBlocks/childBlock");
 
         // RootFound
         myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(7, 39));
@@ -202,29 +188,15 @@ public class CompletionTest extends RequirejsTestCase
         myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(5, 56));
         myFixture.complete(CompletionType.BASIC, 1);
         strings = myFixture.getLookupElementStrings();
-        assert strings != null;
-        assertTrue(
-                strings.containsAll(
-                        Arrays.asList(
-                                "blocks/childBlocks/childBlock"
-                        )
-                )
-        );
-        assertEquals(1, strings.size());
+        assert strings == null;
+        assertCompletionSingle("blocks/childBlocks/childBlock");
 
         // TwoDirectoryWithSlash
         myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(6, 66));
         myFixture.complete(CompletionType.BASIC, 1);
         strings = myFixture.getLookupElementStrings();
-        assert strings != null;
-        assertTrue(
-                strings.containsAll(
-                        Arrays.asList(
-                                "blocks/childBlocks/childBlock"
-                        )
-                )
-        );
-        assertEquals(1, strings.size());
+        assert strings == null;
+        assertCompletionSingle("blocks/childBlocks/childBlock");
 
         // RootFound
         myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(7, 39));
@@ -277,15 +249,8 @@ public class CompletionTest extends RequirejsTestCase
         myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(4, 39));
         myFixture.complete(CompletionType.BASIC, 1);
         strings = myFixture.getLookupElementStrings();
-        assert strings != null;
-        assertTrue(
-                strings.containsAll(
-                        Arrays.asList(
-                                "childBlocks/childBlock"
-                        )
-                )
-        );
-        assertEquals(1, strings.size());
+        assert strings == null;
+        assertCompletionSingle("childBlocks/childBlock");
 
         // 4
         myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(5, 41));
@@ -318,15 +283,8 @@ public class CompletionTest extends RequirejsTestCase
         myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(7, 37));
         myFixture.complete(CompletionType.BASIC, 1);
         strings = myFixture.getLookupElementStrings();
-        assert strings != null;
-        assertTrue(
-                strings.containsAll(
-                        Arrays.asList(
-                                "/blocks/block"
-                        )
-                )
-        );
-        assertEquals(1, strings.size());
+        assert strings == null;
+        assertCompletionSingle("/blocks/block");
 
         // 7
         myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(8, 50));
@@ -342,15 +300,8 @@ public class CompletionTest extends RequirejsTestCase
         myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(9, 38));
         myFixture.complete(CompletionType.BASIC, 1);
         strings = myFixture.getLookupElementStrings();
-        assert strings != null;
-        assertTrue(
-                strings.containsAll(
-                        Arrays.asList(
-                                "./blocks/block"
-                        )
-                )
-        );
-        assertEquals(1, strings.size());
+        assert strings == null;
+        assertCompletionSingle("./blocks/block");
 
         // 9
         myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(10, 30));
@@ -382,15 +333,13 @@ public class CompletionTest extends RequirejsTestCase
 
         // Two
         strings = getCompletionStrings(0, 25);
-        assertCompletionList(Arrays.asList(
-                "/blocks/block"
-        ), strings);
+        assert strings == null;
+        assertCompletionSingle("/blocks/block");
 
         // Tree
-        strings = getCompletionStrings(0, 37);
-        assertCompletionList(Arrays.asList(
-                "blocks/block"
-        ), strings);
+        strings = getCompletionStrings(0, 41);
+        assert strings == null;
+        assertCompletionSingle("blocks/block");
     }
 
     public void testCompletionWithConfigWithRelativePath()
@@ -443,9 +392,8 @@ public class CompletionTest extends RequirejsTestCase
 
         // 5
         strings = getCompletionStringsForHumanPosition(6, 52);
-        assertCompletionList(Arrays.asList(
-                "pathForDirOneDotWithDir/kit"
-        ), strings);
+        assert strings == null;
+        assertCompletionSingle("pathForDirOneDotWithDir/kit");
 
         // 6
         strings = getCompletionStringsForHumanPosition(7, 41);

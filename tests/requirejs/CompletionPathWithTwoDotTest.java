@@ -120,40 +120,22 @@ public class CompletionPathWithTwoDotTest extends RequirejsTestCase
         myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(6, 74));
         myFixture.complete(CompletionType.BASIC, 1);
         strings = myFixture.getLookupElementStrings();
-        assertTrue(
-                strings.containsAll(
-                        Arrays.asList(
-                                "../blocks/childBlocks/childBlock"
-                        )
-                )
-        );
-        assertEquals(1, strings.size());
+        assert strings == null;
+        assertCompletionSingle("../blocks/childBlocks/childBlock");
 
         // WithTwoDotAndTwoDirectoriesAndSlash
         myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(7, 83));
         myFixture.complete(CompletionType.BASIC, 1);
         strings = myFixture.getLookupElementStrings();
-        assertTrue(
-                strings.containsAll(
-                        Arrays.asList(
-                                "../blocks/childBlocks/childBlock"
-                        )
-                )
-        );
-        assertEquals(1, strings.size());
+        assert strings == null;
+        assertCompletionSingle("../blocks/childBlocks/childBlock");
 
         // WithTwoDotAndDirectoryAndSlashTwoChars
         myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(8, 77));
         myFixture.complete(CompletionType.BASIC, 1);
         strings = myFixture.getLookupElementStrings();
-        assertTrue(
-                strings.containsAll(
-                        Arrays.asList(
-                                "../blocks/block"
-                        )
-                )
-        );
-        assertEquals(1, strings.size());
+        assert strings == null;
+        assertCompletionSingle("../blocks/block");
     }
 
     public void testCompletionParentWebPath()

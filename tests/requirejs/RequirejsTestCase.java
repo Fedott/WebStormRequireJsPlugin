@@ -3,12 +3,15 @@ package requirejs;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.lang.javascript.psi.JSFile;
 import com.intellij.openapi.editor.LogicalPosition;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.impl.source.resolve.reference.impl.PsiMultiReference;
 import com.intellij.testFramework.fixtures.CodeInsightFixtureTestCase;
 import requirejs.settings.Settings;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 public abstract class RequirejsTestCase extends CodeInsightFixtureTestCase {
@@ -20,10 +23,7 @@ public abstract class RequirejsTestCase extends CodeInsightFixtureTestCase {
     }
 
     protected void setWebPathSetting() {
-        Settings.getInstance(myFixture.getProject()).publicPath = getProject()
-                .getBaseDir()
-                .getChildren()[0]
-                .getName().concat("/public");
+        Settings.getInstance(myFixture.getProject()).publicPath = "public";
     }
 
     protected void assertCompletionList(List<String> expected, List<String> actual) {
@@ -34,6 +34,12 @@ public abstract class RequirejsTestCase extends CodeInsightFixtureTestCase {
         assertNotNull(actual);
         assertContainsElements(actual, expected);
         assertEquals(expectedSize, actual.size());
+    }
+
+    protected void assertCompletionSingle(String expected) {
+        PsiElement element = myFixture.getFile().findElementAt(myFixture.getCaretOffset());
+        assert element != null;
+        assertEquals("'" + expected + "'", element.getText());
     }
 
     protected List<String> getCompletionStrings(int line, int column) {
