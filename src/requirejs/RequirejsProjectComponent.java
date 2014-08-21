@@ -139,11 +139,19 @@ public class RequirejsProjectComponent implements ProjectComponent {
     }
 
     public VirtualFile getWebDir() {
-        VirtualFile firstContentRoot = ProjectRootManager.getInstance(project).getContentRoots()[0];
+        VirtualFile contentRoot = getContentRoot();
         if (settings.publicPath.isEmpty()) {
-            return firstContentRoot;
+            return contentRoot;
         }
-        return firstContentRoot.findFileByRelativePath(settings.publicPath);
+        return contentRoot.findFileByRelativePath(settings.publicPath);
+    }
+
+    public VirtualFile getContentRoot() {
+        return ProjectRootManager.getInstance(project).getContentRoots()[0];
+    }
+
+    public VirtualFile getContentRoot(VirtualFile file) {
+        return ProjectRootManager.getInstance(project).getFileIndex().getContentRootForFile(file);
     }
 
     public void showInfoNotification(String content, NotificationType type) {
@@ -452,7 +460,7 @@ public class RequirejsProjectComponent implements ProjectComponent {
         requirejsBaseUrl = baseUrl;
         baseUrl = settings.publicPath + '/' + baseUrl;
 
-        VirtualFile firstContentRoot = ProjectRootManager.getInstance(project).getContentRoots()[0];
+        VirtualFile firstContentRoot = getContentRoot();
         requirejsBaseUrlPath = firstContentRoot.findFileByRelativePath(baseUrl);
     }
 
@@ -664,7 +672,7 @@ public class RequirejsProjectComponent implements ProjectComponent {
         List<String> aliasFiles = getAllFilesForConfigPaths();
 
         // get project relative path
-        VirtualFile contentRoot = ProjectRootManager.getInstance(project).getFileIndex().getContentRootForFile(fileDirectory.getVirtualFile());
+        VirtualFile contentRoot = getContentRoot(fileDirectory.getVirtualFile());
         String relativePath;
         if (fileDirectory.getVirtualFile().getPath().equals(contentRoot.getPath())) {
             relativePath = "";
