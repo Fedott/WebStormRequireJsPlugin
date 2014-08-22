@@ -26,6 +26,10 @@ public abstract class RequirejsTestCase extends CodeInsightFixtureTestCase {
         Settings.getInstance(myFixture.getProject()).publicPath = "public";
     }
 
+    protected void setConfigPath(String configPath) {
+        Settings.getInstance(getProject()).configFilePath = configPath;
+    }
+
     protected void assertCompletionList(List<String> expected, List<String> actual) {
         assertCompletionList(expected, expected.size(), actual);
     }

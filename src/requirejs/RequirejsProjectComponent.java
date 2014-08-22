@@ -25,6 +25,7 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.impl.source.PsiFileImpl;
 import com.intellij.psi.impl.source.tree.TreeElement;
 import com.intellij.psi.impl.source.xml.XmlFileImpl;
+import com.intellij.psi.tree.TokenSet;
 import org.jetbrains.annotations.NotNull;
 import requirejs.settings.Settings;
 
@@ -114,7 +115,7 @@ public class RequirejsProjectComponent implements ProjectComponent {
         if (null == getWebDir()) {
             showErrorConfigNotification(
                     "Public directory not found. Path " +
-                            project.getBaseDir().getPath() + '/' + settings.publicPath +
+                            getContentRoot().getPath() + '/' + settings.publicPath +
                             " not found in project"
             );
             LOG.debug("Public directory not found");
@@ -250,6 +251,7 @@ public class RequirejsProjectComponent implements ProjectComponent {
             PsiFile mainJs = PsiManager.getInstance(project).findFile(mainJsVirtualFile);
             if (mainJs instanceof JSFileImpl || mainJs instanceof XmlFileImpl) {
                 Map<String, VirtualFile> allConfigPaths;
+                packageConfig.clear();
                 if (((PsiFileImpl) mainJs).getTreeElement() == null) {
                     allConfigPaths = parseMainJsFile(((PsiFileImpl) mainJs).calcTreeElement());
                 } else {
@@ -395,7 +397,10 @@ public class RequirejsProjectComponent implements ProjectComponent {
     }
 
     private void parsePackages(TreeElement node) {
-        TreeElement packageNode = (TreeElement) node.findChildByType(JSElementTypes.OBJECT_LITERAL_EXPRESSION);
+        TokenSet tokenSet = TokenSet.create(
+//                JSElementTypes.OBJECT_LITERAL_EXPRESSION,
+                JSElementTypes.LITERAL_EXPRESSION);
+        TreeElement packageNode = (TreeElement) node.findChildByType(tokenSet);
         parsePackage(packageNode);
     }
 
@@ -403,14 +408,31 @@ public class RequirejsProjectComponent implements ProjectComponent {
         if (null == node) {
             return;
         }
-        if (node.getElementType() == JSElementTypes.OBJECT_LITERAL_EXPRESSION) {
+        if (node.getElementType() == JSElementTypes.OBJECT_LITERAL_EXPRESSION
+            || node.getElementType() == JSElementTypes.LITERAL_EXPRESSION
+        ) {
+            // TODO: Not adding not resolve package
             Package p = new Package();
             packageConfig.packages.add(p);
-            TreeElement prop = (TreeElement) node.findChildByType(JSElementTypes.PROPERTY);
-            parsePackageObject(prop, p);
+            if (node.getElementType() == JSElementTypes.OBJECT_LITERAL_EXPRESSION) {
+                TreeElement prop = (TreeElement) node.findChildByType(JSElementTypes.PROPERTY);
+                parsePackageObject(prop, p);
+            } else {
+                p.name = dequote(node.getText());
+            }
+            normalizeParsedPackage(p);
         }
         TreeElement next = node.getTreeNext();
         parsePackage(next);
+    }
+
+    private void normalizeParsedPackage(Package p) {
+        if (null == p.location) {
+            p.location = p.name;
+        }
+        if (null == p.main) {
+            p.main = Package.DEFAULT_MAIN;
+        }
     }
 
     private static void parsePackageObject(TreeElement node, Package p) {
@@ -683,14 +705,16 @@ public class RequirejsProjectComponent implements ProjectComponent {
 
         for (Package pkg : packageConfig.packages) {
             if (!restrictAccessToPackage || relativePath.startsWith(pkg.location)) {
-                VirtualFile pkgLocation = project.getBaseDir().findFileByRelativePath(pkg.location);
-                List<String> packageFiles = FileUtils.getAllFilesInDirectory(pkgLocation, pkgLocation.getPath(), pkg.name);
-                for (String file : packageFiles) {
-                    // filter out entry
-                    // TODO filter out current file
-                    String moduleId = pkg.name + '/' + relativeFilePath.substring(pkg.location.length() + 1);
-                    if (isModuleAccessible(pkg, file, moduleId)) {
-                        aliasFiles.add(file);
+                VirtualFile pkgLocation = getConfigFileDir().findFileByRelativePath(pkg.location);
+                if (null != pkgLocation) {
+                    List<String> packageFiles = FileUtils.getAllFilesInDirectory(pkgLocation, pkgLocation.getPath(), pkg.name);
+                    for (String file : packageFiles) {
+                        // filter out entry
+                        // TODO filter out current file
+                        String moduleId = pkg.name + '/' + relativeFilePath.substring(pkg.location.length() + 1);
+                        if (isModuleAccessible(pkg, file, moduleId)) {
+                            aliasFiles.add(file);
+                        }
                     }
                 }
                 if (restrictAccessToPackage) {
@@ -787,7 +811,7 @@ public class RequirejsProjectComponent implements ProjectComponent {
     // -------------------------------------------------------------------------
     private class RequireConfigVfsListener extends VirtualFileAdapter {
         public void contentsChanged(@NotNull VirtualFileEvent event) {
-            VirtualFile publicPath = project.getBaseDir().findFileByRelativePath(settings.publicPath);
+            VirtualFile publicPath = getContentRoot().findFileByRelativePath(settings.publicPath);
             if (publicPath == null || !publicPath.exists()) {
                 return;
             }
