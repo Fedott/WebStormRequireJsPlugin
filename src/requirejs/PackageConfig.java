@@ -19,4 +19,6 @@ class Package {
     public String name;
     public String location;
     public String main;
+
+    public boolean mainExists = false;
 }

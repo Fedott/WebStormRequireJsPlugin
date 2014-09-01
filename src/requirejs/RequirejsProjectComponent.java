@@ -1,6 +1,7 @@
 package requirejs;
 
 import com.google.common.base.Function;
+import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.javascript.JSElementTypes;
@@ -29,6 +30,7 @@ import com.intellij.psi.tree.TokenSet;
 import org.jetbrains.annotations.NotNull;
 import requirejs.settings.Settings;
 
+import javax.annotation.Nullable;
 import java.util.*;
 
 public class RequirejsProjectComponent implements ProjectComponent {
@@ -47,7 +49,6 @@ public class RequirejsProjectComponent implements ProjectComponent {
 
     private RequireConfigVfsListener vfsListener;
     public PackageConfig packageConfig = new PackageConfig();
-    private boolean restrictAccessToPackage = false;
 
     public RequirejsProjectComponent(Project project) {
         this.project = project;
@@ -178,7 +179,13 @@ public class RequirejsProjectComponent implements ProjectComponent {
             }
         }
         modules.addAll(requirejsConfigModules.keySet());
-        Collection<String> ret = Collections2.transform(packageConfig.packages, new Function<Package, String>() {
+        Collection<Package> filteredPackages = Collections2.filter(packageConfig.packages, new Predicate<Package>() {
+            @Override
+            public boolean apply(@Nullable Package aPackage) {
+                return aPackage != null && aPackage.mainExists;
+            }
+        });
+        Collection<String> ret = Collections2.transform(filteredPackages, new Function<Package, String>() {
             @Override
             public String apply(Package aPackage) {
                 return aPackage.name;
@@ -398,7 +405,7 @@ public class RequirejsProjectComponent implements ProjectComponent {
 
     private void parsePackages(TreeElement node) {
         TokenSet tokenSet = TokenSet.create(
-//                JSElementTypes.OBJECT_LITERAL_EXPRESSION,
+                JSElementTypes.OBJECT_LITERAL_EXPRESSION,
                 JSElementTypes.LITERAL_EXPRESSION);
         TreeElement packageNode = (TreeElement) node.findChildByType(tokenSet);
         parsePackage(packageNode);
@@ -421,6 +428,7 @@ public class RequirejsProjectComponent implements ProjectComponent {
                 p.name = dequote(node.getText());
             }
             normalizeParsedPackage(p);
+            validatePackage(p);
         }
         TreeElement next = node.getTreeNext();
         parsePackage(next);
@@ -432,6 +440,14 @@ public class RequirejsProjectComponent implements ProjectComponent {
         }
         if (null == p.main) {
             p.main = Package.DEFAULT_MAIN;
+        }
+    }
+
+    private void validatePackage(Package p) {
+        if (null == getConfigFileDir().findFileByRelativePath(p.location + '/' + p.main + ".js")) {
+            p.mainExists = false;
+        } else {
+            p.mainExists = true;
         }
     }
 
@@ -704,7 +720,7 @@ public class RequirejsProjectComponent implements ProjectComponent {
         String relativeFilePath = element.getContainingFile().getOriginalFile().getVirtualFile().getPath().substring(contentRoot.getPath().length() + 1);
 
         for (Package pkg : packageConfig.packages) {
-            if (!restrictAccessToPackage || relativePath.startsWith(pkg.location)) {
+            if (relativePath.startsWith(pkg.location)) {
                 VirtualFile pkgLocation = getConfigFileDir().findFileByRelativePath(pkg.location);
                 if (null != pkgLocation) {
                     List<String> packageFiles = FileUtils.getAllFilesInDirectory(pkgLocation, pkgLocation.getPath(), pkg.name);
@@ -716,9 +732,6 @@ public class RequirejsProjectComponent implements ProjectComponent {
                             aliasFiles.add(file);
                         }
                     }
-                }
-                if (restrictAccessToPackage) {
-                    break;
                 }
             }
         }
@@ -771,10 +784,7 @@ public class RequirejsProjectComponent implements ProjectComponent {
     }
 
     private boolean isModuleAccessible(Package pkg, String file, String moduleId) {
-        if (restrictAccessToPackage) {
-            return !file.equals(pkg.name + '/' + pkg.main + ".js") && file.endsWith(".js") && !file.equals(moduleId);
-        }
-        return file.endsWith(".js") && !file.equals(moduleId);
+        return file.endsWith(".js") && !file.equals(moduleId) && !file.equals(pkg.name + '/' + pkg.main + ".js");
 //        return (restrictAccessToPackage && !file.equals(pkg.name + '/' + pkg.main + ".js")) && file.endsWith(".js") && !file.equals(moduleId);
     }
 

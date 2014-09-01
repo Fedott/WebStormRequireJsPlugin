@@ -16,6 +16,7 @@ public class PackageTest extends RequirejsTestCase {
                 "public/packages/packageWithMain/packageFile.js",
                 "public/packages/packageWithName/main.js",
                 "public/packages/packageSimple/otherFile.js",
+                "public/packages/packageWithMainNotExists/otherFile.js",
                 "public/packages/configWithPackages.js"
         );
         setWebPathSetting();
@@ -26,17 +27,22 @@ public class PackageTest extends RequirejsTestCase {
         List<String> strings = getCompletionStringsForHumanPosition(2, 32);
         assertCompletionList(Arrays.asList(
                 "packageSimple",
+                "packageSimple/otherFile",
                 "packageWithName",
                 "packageWithMain",
                 "packageWithLocation",
-                "packageWithLocationAndMain"
-        ), strings);
+                "packageWithLocationAndMain",
+                "packageWithMainNotExists/otherFile"
+        ), 12, strings);
     }
 
     public void testCompletion2() {
         List<String> strings = getCompletionStringsForHumanPosition(3, 36);
-        assert strings == null;
-        assertCompletionSingle("/blocks/block");
+        assertCompletionList(Arrays.asList(
+                "packageSimple",
+                "packageSimple/main",
+                "packageSimple/otherFile"
+        ), strings);
     }
 
     public void testCompletion3() {
