@@ -18,7 +18,6 @@ require({
             location: "packageLocation2"
         },
         "packageDirNotExists",
-        "packageMainNotExists",
         {
             name: "packageWithMainNotExists",
             main: "notExists"

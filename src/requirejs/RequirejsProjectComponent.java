@@ -615,7 +615,8 @@ public class RequirejsProjectComponent implements ProjectComponent {
                 if (moduleId == null) {
                     moduleId = pkg.main;
                 }
-                targetFile = element.getProject().getBaseDir().findFileByRelativePath(pkg.location + '/' + moduleId + ".js");
+                targetFile = getBaseUrlPath(false)
+                        .findFileByRelativePath(pkg.location + '/' + moduleId + ".js");
                 if (null != targetFile) {
                     return PsiManager.getInstance(element.getProject()).findFile(targetFile);
                 }

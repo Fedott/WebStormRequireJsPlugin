@@ -1,5 +1,7 @@
 package requirejs;
 
+import com.intellij.psi.PsiReference;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -61,5 +63,95 @@ public class PackageTest extends RequirejsTestCase {
     public void testCompletion5() {
         List<String> strings = getCompletionStringsForHumanPosition(6, 48);
         strings.isEmpty();
+    }
+
+    public void testReference1()
+    {
+        myFixture.configureByFile("public/packages/filePackagesResolveTest.js");
+        PsiReference reference;
+
+        // 1
+        reference = getReferenceForHumanPosition(2, 35);
+        assertReference(reference, "'packageSimple'", "main.js");
+    }
+
+    public void testReference2()
+    {
+        myFixture.configureByFile("public/packages/filePackagesResolveTest.js");
+        PsiReference reference;
+
+        // 1
+        reference = getReferenceForHumanPosition(3, 35);
+        assertReference(reference, "'packageSimple/otherFile'", "otherFile.js");
+    }
+
+    public void testReference3()
+    {
+        myFixture.configureByFile("public/packages/filePackagesResolveTest.js");
+        PsiReference reference;
+
+        // 1
+        reference = getReferenceForHumanPosition(4, 35);
+        assertReference(reference, "'packageWithMain'", "packageFile.js");
+    }
+
+    public void testReference4()
+    {
+        myFixture.configureByFile("public/packages/filePackagesResolveTest.js");
+        PsiReference reference;
+
+        // 1
+        reference = getReferenceForHumanPosition(5, 35);
+        assertReference(reference, "'packageWithLocationAndMain'", "packageFile.js");
+    }
+
+    public void testReference5()
+    {
+        myFixture.configureByFile("public/packages/filePackagesResolveTest.js");
+        PsiReference reference;
+
+        // 1
+        reference = getReferenceForHumanPosition(6, 35);
+        assertReference(reference, "'packageDirNotExists'", null);
+    }
+
+    public void testReference6()
+    {
+        myFixture.configureByFile("public/packages/filePackagesResolveTest.js");
+        PsiReference reference;
+
+        // 1
+        reference = getReferenceForHumanPosition(7, 35);
+        assertReference(reference, "'packageWithMainNotExists'", null);
+    }
+
+    public void testReference7()
+    {
+        myFixture.configureByFile("public/packages/filePackagesResolveTest.js");
+        PsiReference reference;
+
+        // 1
+        reference = getReferenceForHumanPosition(8, 35);
+        assertReference(reference, "'packageWithMainNotExists/otherFile'", "otherFile.js");
+    }
+
+    public void testReference8()
+    {
+        myFixture.configureByFile("public/packages/filePackagesResolveTest.js");
+        PsiReference reference;
+
+        // 1
+        reference = getReferenceForHumanPosition(9, 35);
+        assertReference(reference, "'packageSimple/main'", "main.js");
+    }
+
+    public void testReference9()
+    {
+        myFixture.configureByFile("public/packages/filePackagesResolveTest.js");
+        PsiReference reference;
+
+        // 1
+        reference = getReferenceForHumanPosition(10, 35);
+        assertReference(reference, "'packageWithLocation'", "main.js");
     }
 }
