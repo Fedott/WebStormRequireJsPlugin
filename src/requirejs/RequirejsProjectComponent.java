@@ -149,7 +149,12 @@ public class RequirejsProjectComponent implements ProjectComponent {
     }
 
     public VirtualFile getContentRoot() {
-        return ProjectRootManager.getInstance(project).getContentRoots()[0];
+        VirtualFile[] contentRoots = ProjectRootManager.getInstance(project).getContentRoots();
+        if (contentRoots.length > 0) {
+            return contentRoots[0];
+        } else {
+            return project.getBaseDir();
+        }
     }
 
     public VirtualFile getContentRoot(VirtualFile file) {
