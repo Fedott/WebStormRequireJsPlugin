@@ -23,7 +23,11 @@ public abstract class RequirejsTestCase extends CodeInsightFixtureTestCase {
     }
 
     protected void setWebPathSetting() {
-        Settings.getInstance(myFixture.getProject()).publicPath = "public";
+        setWebPathSetting("public");
+    }
+
+    protected void setWebPathSetting(String path) {
+        Settings.getInstance(myFixture.getProject()).publicPath = path;
     }
 
     protected void setConfigPath(String configPath) {
