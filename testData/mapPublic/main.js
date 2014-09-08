@@ -1,13 +1,14 @@
 requirejs.config({
     map: {
-        'some/newmodule': {
+        'some/newModule': {
             'foo': 'foo1.2'
         },
-        'some/oldmodule': {
+        'some/oldModule': {
             'foo': 'foo1.0'
         },
         '*': {
-            'foo': 'foo.js'
+            'foo': 'foo.js',
+            bar: 'bar2.0r1.js'
         }
     }
 });

@@ -17,27 +17,36 @@ public class MapTest extends RequirejsTestCase {
         setWebPathSetting("mapPublic");
     }
 
-    public void testReferenceOld() {
+    public void testReferenceOldModule() {
         PsiReference reference;
 
         myFixture.configureByFile("mapPublic/some/oldModule.js");
-        reference = getReferenceForHumanPosition(2, 27);
+        reference = getReferenceForHumanPosition(2, 26);
         assertReference(reference, "'foo'", "foo1.0.js");
+
+        reference = getReferenceForHumanPosition(3, 26);
+        assertReference(reference, "'bar'", "bar2.0r1.js");
     }
 
     public void testReferenceNewModule() {
         PsiReference reference;
 
         myFixture.configureByFile("mapPublic/some/newModule.js");
-        reference = getReferenceForHumanPosition(2, 27);
+        reference = getReferenceForHumanPosition(2, 26);
         assertReference(reference, "'foo'", "foo1.2.js");
+
+        reference = getReferenceForHumanPosition(3, 26);
+        assertReference(reference, "'bar'", "bar2.0r1.js");
     }
 
     public void testReferenceOtherModule() {
         PsiReference reference;
 
         myFixture.configureByFile("mapPublic/some/otherModule.js");
-        reference = getReferenceForHumanPosition(2, 27);
+        reference = getReferenceForHumanPosition(2, 26);
         assertReference(reference, "'foo'", "foo.js");
+
+        reference = getReferenceForHumanPosition(3, 26);
+        assertReference(reference, "'bar'", "bar2.0r1.js");
     }
 }

@@ -46,6 +46,7 @@ public class RequirejsProjectComponent implements ProjectComponent {
 
     protected Map<String, VirtualFile> requirejsConfigModules;
     protected Map<String, VirtualFile> requirejsConfigPaths;
+    protected List<RequireMap> requireMaps;
 
     private RequireConfigVfsListener vfsListener;
     public PackageConfig packageConfig = new PackageConfig();
@@ -264,6 +265,7 @@ public class RequirejsProjectComponent implements ProjectComponent {
             if (mainJs instanceof JSFileImpl || mainJs instanceof XmlFileImpl) {
                 Map<String, VirtualFile> allConfigPaths;
                 packageConfig.clear();
+                requireMaps = new ArrayList<RequireMap>();
                 if (((PsiFileImpl) mainJs).getTreeElement() == null) {
                     allConfigPaths = parseMainJsFile(((PsiFileImpl) mainJs).calcTreeElement());
                 } else {
@@ -393,6 +395,9 @@ public class RequirejsProjectComponent implements ProjectComponent {
                         LOG.debug("parsing packages");
                         parsePackages(packages);
                         LOG.debug("parsing packages done, found " + packageConfig.packages.size() + " packages");
+                    } else if (identifierName.equals("map")) {
+                        TreeElement mapElement = (TreeElement) node.findChildByType(JSElementTypes.OBJECT_LITERAL_EXPRESSION);
+                        parseMapsConfig(mapElement);
                     }
                 }
             }
@@ -406,6 +411,59 @@ public class RequirejsProjectComponent implements ProjectComponent {
         }
 
         return list;
+    }
+
+    protected void parseMapsConfig(TreeElement mapElement) {
+        TreeElement firstMapConfigElement = (TreeElement) mapElement.findChildByType(JSElementTypes.PROPERTY);
+        parseMapConfigElement(firstMapConfigElement);
+    }
+
+    protected void parseMapConfigElement(TreeElement mapConfigElement) {
+        if (null == mapConfigElement) {
+            return;
+        }
+
+        if (mapConfigElement.getElementType() == JSElementTypes.PROPERTY) {
+            String module = getJSPropertyName(mapConfigElement);
+
+            TreeElement mapAliasesObject = (TreeElement) mapConfigElement
+                    .findChildByType(JSElementTypes.OBJECT_LITERAL_EXPRESSION);
+
+            if (null != mapAliasesObject) {
+                TreeElement mapAliasProperty = (TreeElement) mapAliasesObject.findChildByType(JSElementTypes.PROPERTY);
+                parseMapAliasProperty(module, mapAliasProperty);
+            }
+        }
+
+        parseMapConfigElement(mapConfigElement.getTreeNext());
+    }
+
+    protected void parseMapAliasProperty(String module, TreeElement mapAliasProperty) {
+        if (null == mapAliasProperty) {
+            return;
+        }
+
+        if (mapAliasProperty.getElementType() == JSElementTypes.PROPERTY) {
+            RequireMap requireMap = new RequireMap();
+            requireMap.module = module;
+            requireMap.alias = getJSPropertyName(mapAliasProperty);
+            requireMap.path = getJSPropertyLiteralValue(mapAliasProperty);
+            requireMaps.add(requireMap);
+        }
+
+        parseMapAliasProperty(module, mapAliasProperty.getTreeNext());
+    }
+
+    protected String getJSPropertyName(TreeElement jsProperty) {
+        TreeElement identifier = (TreeElement) jsProperty.findChildByType(
+                TokenSet.create(JSTokenTypes.IDENTIFIER, JSTokenTypes.STRING_LITERAL)
+        );
+        String identifierName = null;
+        if (null != identifier) {
+            identifierName = dequote(identifier.getText());
+        }
+
+        return identifierName;
     }
 
     private void parsePackages(TreeElement node) {
@@ -474,11 +532,11 @@ public class RequirejsProjectComponent implements ProjectComponent {
             }
             if (null != identifierName) {
                 if (identifierName.equals("name")) {
-                    p.name = getLiteralValue(node);
+                    p.name = getJSPropertyLiteralValue(node);
                 } else if (identifierName.equals("location")) {
-                    p.location = getLiteralValue(node);
+                    p.location = getJSPropertyLiteralValue(node);
                 } else if (identifierName.equals("main")) {
-                    p.main = getLiteralValue(node);
+                    p.main = getJSPropertyLiteralValue(node);
                 }
             }
         }
@@ -487,8 +545,8 @@ public class RequirejsProjectComponent implements ProjectComponent {
         parsePackageObject(next, p);
     }
 
-    private static String getLiteralValue(TreeElement node) {
-        return dequote(node
+    private static String getJSPropertyLiteralValue(TreeElement jsProperty) {
+        return dequote(jsProperty
                 .findChildByType(JSElementTypes.LITERAL_EXPRESSION)
                 .getText());
     }
