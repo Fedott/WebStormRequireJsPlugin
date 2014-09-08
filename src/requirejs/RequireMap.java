@@ -1,7 +1,9 @@
 package requirejs;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class RequireMap {
     public String module;
-    public String alias;
-    public String path;
+    public List<RequirePathAlias> aliases = new ArrayList<RequirePathAlias>() {};
 }

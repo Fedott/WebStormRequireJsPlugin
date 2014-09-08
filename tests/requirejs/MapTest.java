@@ -11,8 +11,10 @@ public class MapTest extends RequirejsTestCase {
                 "mapPublic/some/newModule.js",
                 "mapPublic/some/otherModule.js",
                 "mapPublic/main.js",
+                "mapPublic/foo1.3.js",
                 "mapPublic/foo1.0.js",
-                "mapPublic/foo1.2.js"
+                "mapPublic/foo1.2.js",
+                "mapPublic/bar2.0r1.js"
         );
         setWebPathSetting("mapPublic");
     }
@@ -44,7 +46,7 @@ public class MapTest extends RequirejsTestCase {
 
         myFixture.configureByFile("mapPublic/some/otherModule.js");
         reference = getReferenceForHumanPosition(2, 26);
-        assertReference(reference, "'foo'", "foo.js");
+        assertReference(reference, "'foo'", "foo1.3.js");
 
         reference = getReferenceForHumanPosition(3, 26);
         assertReference(reference, "'bar'", "bar2.0r1.js");

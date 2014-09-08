@@ -7,7 +7,7 @@ requirejs.config({
             'foo': 'foo1.0'
         },
         '*': {
-            'foo': 'foo.js',
+            'foo': 'foo1.3.js',
             bar: 'bar2.0r1.js'
         }
     }

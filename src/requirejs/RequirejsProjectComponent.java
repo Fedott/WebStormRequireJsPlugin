@@ -430,28 +430,32 @@ public class RequirejsProjectComponent implements ProjectComponent {
                     .findChildByType(JSElementTypes.OBJECT_LITERAL_EXPRESSION);
 
             if (null != mapAliasesObject) {
+                RequireMap requireMap = new RequireMap();
+                requireMaps.add(requireMap);
+
+                requireMap.module = module;
                 TreeElement mapAliasProperty = (TreeElement) mapAliasesObject.findChildByType(JSElementTypes.PROPERTY);
-                parseMapAliasProperty(module, mapAliasProperty);
+                parseMapAliasProperty(requireMap, mapAliasProperty);
             }
         }
 
         parseMapConfigElement(mapConfigElement.getTreeNext());
     }
 
-    protected void parseMapAliasProperty(String module, TreeElement mapAliasProperty) {
+    protected void parseMapAliasProperty(RequireMap requireMap, TreeElement mapAliasProperty) {
         if (null == mapAliasProperty) {
             return;
         }
 
         if (mapAliasProperty.getElementType() == JSElementTypes.PROPERTY) {
-            RequireMap requireMap = new RequireMap();
-            requireMap.module = module;
-            requireMap.alias = getJSPropertyName(mapAliasProperty);
-            requireMap.path = getJSPropertyLiteralValue(mapAliasProperty);
-            requireMaps.add(requireMap);
+            RequirePathAlias alias = new RequirePathAlias();
+            alias.alias = getJSPropertyName(mapAliasProperty);
+            alias.path = getJSPropertyLiteralValue(mapAliasProperty);
+
+            requireMap.aliases.add(alias);
         }
 
-        parseMapAliasProperty(module, mapAliasProperty.getTreeNext());
+        parseMapAliasProperty(requireMap, mapAliasProperty.getTreeNext());
     }
 
     protected String getJSPropertyName(TreeElement jsProperty) {
@@ -659,6 +663,39 @@ public class RequirejsProjectComponent implements ProjectComponent {
                     targetFile = FileUtils.findFileByPath(entry.getValue(), valuePath.replaceFirst(entry.getKey(), ""));
                     if (null != targetFile) {
                         return PsiManager.getInstance(element.getProject()).findFile(targetFile);
+                    }
+                }
+            }
+        }
+
+        String requireMapModule = FileUtils.removeExt(element.getContainingFile().getVirtualFile().getPath().replace(
+                getWebDir().getPath() + '/',
+                ""
+        ), ".js");
+
+        RequireMap defaultRequireMap = null;
+
+        for (RequireMap requireMap : requireMaps) {
+            if (! requireMap.module.equals("*") && requireMap.module.equals(requireMapModule)) {
+                for (RequirePathAlias alias : requireMap.aliases) {
+                    if (valuePath.equals(alias.alias)) {
+                        targetFile = FileUtils.findFileByPath(getWebDir(), alias.path);
+                        if (null != targetFile) {
+                            return PsiManager.getInstance(project).findFile(targetFile);
+                        }
+                    }
+                }
+            } else if (requireMap.module.equals("*")) {
+                defaultRequireMap = requireMap;
+            }
+        }
+
+        if (null != defaultRequireMap) {
+            for (RequirePathAlias alias : defaultRequireMap.aliases) {
+                if (valuePath.equals(alias.alias)) {
+                    targetFile = FileUtils.findFileByPath(getWebDir(), alias.path);
+                    if (null != targetFile) {
+                        return PsiManager.getInstance(project).findFile(targetFile);
                     }
                 }
             }
