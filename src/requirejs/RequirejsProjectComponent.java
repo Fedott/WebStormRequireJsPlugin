@@ -46,7 +46,7 @@ public class RequirejsProjectComponent implements ProjectComponent {
 
     protected Map<String, VirtualFile> requirejsConfigModules;
     protected Map<String, VirtualFile> requirejsConfigPaths;
-    protected List<RequireMap> requireMaps;
+    protected RequireMap requireMap = new RequireMap();
 
     private RequireConfigVfsListener vfsListener;
     public PackageConfig packageConfig = new PackageConfig();
@@ -265,7 +265,7 @@ public class RequirejsProjectComponent implements ProjectComponent {
             if (mainJs instanceof JSFileImpl || mainJs instanceof XmlFileImpl) {
                 Map<String, VirtualFile> allConfigPaths;
                 packageConfig.clear();
-                requireMaps = new ArrayList<RequireMap>();
+                requireMap.clear();
                 if (((PsiFileImpl) mainJs).getTreeElement() == null) {
                     allConfigPaths = parseMainJsFile(((PsiFileImpl) mainJs).calcTreeElement());
                 } else {
@@ -430,19 +430,20 @@ public class RequirejsProjectComponent implements ProjectComponent {
                     .findChildByType(JSElementTypes.OBJECT_LITERAL_EXPRESSION);
 
             if (null != mapAliasesObject) {
-                RequireMap requireMap = new RequireMap();
-                requireMaps.add(requireMap);
+                RequireMapModule requireMapModule = new RequireMapModule();
 
-                requireMap.module = module;
+                requireMapModule.module = module;
                 TreeElement mapAliasProperty = (TreeElement) mapAliasesObject.findChildByType(JSElementTypes.PROPERTY);
-                parseMapAliasProperty(requireMap, mapAliasProperty);
+                parseMapAliasProperty(requireMapModule, mapAliasProperty);
+
+                requireMap.addModule(requireMapModule);
             }
         }
 
         parseMapConfigElement(mapConfigElement.getTreeNext());
     }
 
-    protected void parseMapAliasProperty(RequireMap requireMap, TreeElement mapAliasProperty) {
+    protected void parseMapAliasProperty(RequireMapModule requireMapModule, TreeElement mapAliasProperty) {
         if (null == mapAliasProperty) {
             return;
         }
@@ -452,10 +453,10 @@ public class RequirejsProjectComponent implements ProjectComponent {
             alias.alias = getJSPropertyName(mapAliasProperty);
             alias.path = getJSPropertyLiteralValue(mapAliasProperty);
 
-            requireMap.aliases.add(alias);
+            requireMapModule.addAlias(alias);
         }
 
-        parseMapAliasProperty(requireMap, mapAliasProperty.getTreeNext());
+        parseMapAliasProperty(requireMapModule, mapAliasProperty.getTreeNext());
     }
 
     protected String getJSPropertyName(TreeElement jsProperty) {
@@ -673,31 +674,11 @@ public class RequirejsProjectComponent implements ProjectComponent {
                 ""
         ), ".js");
 
-        RequireMap defaultRequireMap = null;
-
-        for (RequireMap requireMap : requireMaps) {
-            if (! requireMap.module.equals("*") && requireMap.module.equals(requireMapModule)) {
-                for (RequirePathAlias alias : requireMap.aliases) {
-                    if (valuePath.equals(alias.alias)) {
-                        targetFile = FileUtils.findFileByPath(getWebDir(), alias.path);
-                        if (null != targetFile) {
-                            return PsiManager.getInstance(project).findFile(targetFile);
-                        }
-                    }
-                }
-            } else if (requireMap.module.equals("*")) {
-                defaultRequireMap = requireMap;
-            }
-        }
-
-        if (null != defaultRequireMap) {
-            for (RequirePathAlias alias : defaultRequireMap.aliases) {
-                if (valuePath.equals(alias.alias)) {
-                    targetFile = FileUtils.findFileByPath(getWebDir(), alias.path);
-                    if (null != targetFile) {
-                        return PsiManager.getInstance(project).findFile(targetFile);
-                    }
-                }
+        RequirePathAlias alias = requireMap.getAliasByModule(requireMapModule, valuePath);
+        if (null != alias) {
+            targetFile = FileUtils.findFileByPath(getWebDir(), alias.path);
+            if (null != targetFile) {
+                return PsiManager.getInstance(project).findFile(targetFile);
             }
         }
 
