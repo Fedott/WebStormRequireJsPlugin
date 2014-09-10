@@ -30,7 +30,6 @@ import com.intellij.psi.tree.TokenSet;
 import org.jetbrains.annotations.NotNull;
 import requirejs.settings.Settings;
 
-import javax.annotation.Nullable;
 import java.util.*;
 
 public class RequirejsProjectComponent implements ProjectComponent {
@@ -187,7 +186,7 @@ public class RequirejsProjectComponent implements ProjectComponent {
         modules.addAll(requirejsConfigModules.keySet());
         Collection<Package> filteredPackages = Collections2.filter(packageConfig.packages, new Predicate<Package>() {
             @Override
-            public boolean apply(@Nullable Package aPackage) {
+            public boolean apply(Package aPackage) {
                 return aPackage != null && aPackage.mainExists;
             }
         });

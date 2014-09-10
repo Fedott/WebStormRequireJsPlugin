@@ -1,0 +1,173 @@
+<project name="requirejs">
+
+    <property file="build.properties"/>
+
+    <property name="idea" value="${basedir}/idea"/>
+    <property name="src" value="${basedir}/src"/>
+    <property name="resources" value="${basedir}/resources"/>
+    <property name="test" value="${basedir}/tests"/>
+    <property name="idea.home" value="${idea}/unzip"/>
+    <property environment="env"/>
+    <property name="tools.jar" value="${env.JAVA_HOME}/lib/tools.jar"/>
+    <property name="version" value="${version-id}"/>
+    <property name="filename" value="requirejs-${version}"/>
+
+    <!--Output-->
+    <property name="out" value="${basedir}/out"/>
+    <property name="classes" value="${out}/classes"/>
+    <property name="build" value="${out}/build"/>
+    <property name="dist" value="${out}/dist"/>
+    <property name="test-reports" value="${out}/test-reports"/>
+
+    <path id="build.classpath">
+        <fileset dir="${idea.home}/lib">
+            <include name="*.jar"/>
+        </fileset>
+        <fileset dir="${java.home}/lib">
+            <include name="*.jar"/>
+        </fileset>
+        <fileset dir="${jdk.home.idea_ps-138.940}/plugins/CSS/lib">
+            <include name="*.jar" />
+        </fileset>
+        <fileset dir="${jdk.home.idea_ps-138.940}/plugins/JavaScriptLanguage/lib">
+            <include name="*.jar" />
+        </fileset>
+        <pathelement path="${classes}"/>
+    </path>
+
+    <path id="test.classpath">
+        <path refid="build.classpath"/>
+        <pathelement path="${tools.jar}"/>
+    </path>
+
+    <!-- Clean all the generated stuff -->
+    <target name="clean" description="Removes all generated files">
+        <delete dir="${out}"/>
+    </target>
+
+    <!-- Compile all the sources to the ${classes} folder -->
+    <target name="compile">
+        <mkdir dir="${classes}"/>
+        <taskdef name="javac2" classname="com.intellij.ant.Javac2">
+            <classpath refid="build.classpath"/>
+        </taskdef>
+        <!-- The task requires the following libraries from IntelliJ IDEA distribution: -->
+        <!--   javac2.jar; jdom.jar; asm.jar; asm-commons.jar -->
+        <javac2 destdir="${classes}" debug="on" fork="true" encoding="UTF-8" includeantruntime="false">
+            <classpath refid="build.classpath"/>
+            <src path="${src}"/>
+            <include name="requirejs/**"/>
+        </javac2>
+    </target>
+
+    <!-- Create requirejs.jar for packing inside zip plugin package -->
+    <target name="jar">
+        <mkdir dir="${classes}"/>
+        <mkdir dir="${classes}/META-INF"/>
+        <copy file="resources/META-INF/plugin.xml" todir="${classes}/META-INF">
+            <filterset>
+                <filter token="VERSION" value="${version}"/>
+                <filter token="SINCE-VERSION" value="${platform-version}"/>
+                <filter token="BUILD-NUMBER" value="${build.number}"/>
+            </filterset>
+        </copy>
+        <copy todir="${classes}">
+            <fileset dir="${src}" excludes="**/*.java"/>
+        </copy>
+        <copy todir="${classes}">
+            <fileset dir="${resources}"/>
+        </copy>
+        <mkdir dir="${build}"/>
+        <jar basedir="${classes}" jarfile="${build}/requirejs.jar" compress="yes"/>
+    </target>
+
+    <target name="build" depends="unzip, clean, compile, jar" description="Compiles all source code and created plugin jar file"/>
+
+    <!-- Download IntelliJ IDEA distribution -->
+    <target name="download" description="Downloads IntelliJ IDEA artifacts">
+        <mkdir dir="${idea}"/>
+        <get src="${idea.download.url}" dest="${idea}" skipexisting="true"/>
+    </target>
+
+    <!-- Unpack idea-*.zip file for requirejs compilation -->
+    <target name="unzip" depends="download" description="Unzip downloaded artifacts and set up idea.home">
+        <delete dir="${idea}/unzip"/>
+        <mkdir dir="${idea}/unzip"/>
+        <basename property="idea.filename" file="${idea.download.url}"/>
+        <unzip dest="${idea}/unzip">
+            <fileset dir="${idea}" includes="${idea.filename}"/>
+        </unzip>
+    </target>
+
+    <target name="dist" depends="dist-src, dist-bin" description="Creates the src and bin distribution files"/>
+
+    <!-- Prepare layout for plugin distribution and creates zip file which can be published -->
+    <target name="dist-bin" depends="clean, build" description="Creates a zip file containing the plugin sources">
+        <delete dir="${build}/requirejs"/>
+        <mkdir dir="${build}/requirejs"/>
+        <copy file="${basedir}/LICENSE.txt" tofile="${build}/requirejs/LICENSE"/>
+        <copy todir="${build}/requirejs/lib">
+            <fileset dir="${build}" includes="*.jar"/>
+        </copy>
+        <copy file="${basedir}/README.md" tofile="${build}/requirejs/README"/>
+        <copy file="${basedir}/CHANGES.md" tofile="${build}/requirejs/CHANGES"/>
+        <zip basedir="${build}" zipfile="${dist}/${filename}-${build.number}.zip" compress="true" includes="requirejs/**"/>
+    </target>
+
+    <!-- Packs all the sources -->
+    <target name="dist-src" depends="clean" description="Creates the source tar file">
+        <mkdir dir="${dist}"/>
+        <tar basedir="." destfile="${dist}/${filename}-src.tar.gz" excludes=".git/**,.idea/**,idea/**,out/**,*.iws,*.iml" compression="gzip"/>
+    </target>
+
+    <target name="compile-tests" depends="compile">
+        <mkdir dir="${classes}"/>
+        <taskdef name="javac2" classname="com.intellij.ant.Javac2">
+            <classpath refid="build.classpath"/>
+        </taskdef>
+        <javac2 destdir="${classes}" debug="on" fork="true" encoding="UTF-8" includeantruntime="false">
+            <classpath refid="build.classpath"/>
+            <src path="${test}"/>
+            <include name="requirejs/**"/>
+        </javac2>
+    </target>
+
+    <target name="prepare-tests" depends="compile-tests">
+        <!--<mkdir dir="${classes}/META-INF"/>-->
+        <!--<copy file="resources/META-INF/plugin.xml" todir="${classes}/META-INF">-->
+            <!--<filterset>-->
+                <!--<filter token="VERSION" value="${version}"/>-->
+                <!--<filter token="SINCE-VERSION" value="${platform-version}"/>-->
+            <!--</filterset>-->
+        <!--</copy>-->
+        <copy todir="${classes}">
+            <fileset dir="${resources}"/>
+        </copy>
+        <mkdir dir="${out}/requirejs"/>
+    </target>
+
+    <target name="test" depends="clean, prepare-tests">
+        <mkdir dir="${test-reports}"/>
+        <junit fork="false" logfailedtests="true" printsummary="false">
+            <classpath refid="test.classpath"/>
+
+            <jvmarg value="-Xmx256M"/>
+            <jvmarg value="-ea"/>
+            <jvmarg value="-Djava.awt.headless=true"/>
+            <jvmarg value="-Didea.plugins.path=${out}"/>
+            <jvmarg value="-Didea.load.plugins.id=requirejs"/>
+            <jvmarg value="-Didea.config.path=~/.IdeaIC13/system/plugins-sandbox/config"/>
+            <jvmarg value="-Didea.system.path=~/.IdeaIC13/system/plugins-sandbox/system"/>
+            <jvmarg value="-Didea.home.path=${basedir}/testData"/>
+            <jvmarg value="-Didea.platform.prefix=PhpStorm"/>
+
+            <formatter type="plain"/>
+
+            <batchtest todir="${test-reports}">
+                <fileset dir="${test}">
+                    <include name="**/*Test.java"/>
+                </fileset>
+            </batchtest>
+        </junit>
+    </target>
+</project>
