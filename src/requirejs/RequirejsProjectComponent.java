@@ -30,7 +30,6 @@ import com.intellij.psi.tree.TokenSet;
 import org.jetbrains.annotations.NotNull;
 import requirejs.settings.Settings;
 
-import javax.annotation.Nullable;
 import java.util.*;
 
 public class RequirejsProjectComponent implements ProjectComponent {
@@ -46,6 +45,7 @@ public class RequirejsProjectComponent implements ProjectComponent {
 
     protected Map<String, VirtualFile> requirejsConfigModules;
     protected Map<String, VirtualFile> requirejsConfigPaths;
+    protected RequirePaths requirePaths;
     protected RequireMap requireMap = new RequireMap();
 
     private RequireConfigVfsListener vfsListener;
@@ -54,6 +54,7 @@ public class RequirejsProjectComponent implements ProjectComponent {
     public RequirejsProjectComponent(Project project) {
         this.project = project;
         settings = Settings.getInstance(project);
+        requirePaths = new RequirePaths(this);
     }
 
     @Override
@@ -187,7 +188,7 @@ public class RequirejsProjectComponent implements ProjectComponent {
         modules.addAll(requirejsConfigModules.keySet());
         Collection<Package> filteredPackages = Collections2.filter(packageConfig.packages, new Predicate<Package>() {
             @Override
-            public boolean apply(@Nullable Package aPackage) {
+            public boolean apply(Package aPackage) {
                 return aPackage != null && aPackage.mainExists;
             }
         });
@@ -199,15 +200,6 @@ public class RequirejsProjectComponent implements ProjectComponent {
         });
         modules.addAll(ret);
         return modules;
-    }
-
-    public VirtualFile getModuleVFile(String alias) {
-        if (requirejsConfigModules == null) {
-            if (!parseRequirejsConfig()) {
-                return null;
-            }
-        }
-        return requirejsConfigModules.get(alias);
     }
 
     public String getBaseUrl() {
@@ -266,6 +258,7 @@ public class RequirejsProjectComponent implements ProjectComponent {
                 Map<String, VirtualFile> allConfigPaths;
                 packageConfig.clear();
                 requireMap.clear();
+                requirePaths.clear();
                 if (((PsiFileImpl) mainJs).getTreeElement() == null) {
                     allConfigPaths = parseMainJsFile(((PsiFileImpl) mainJs).calcTreeElement());
                 } else {
@@ -577,6 +570,11 @@ public class RequirejsProjectComponent implements ProjectComponent {
         }
 
         if (node.getElementType() == JSElementTypes.PROPERTY) {
+            RequirePathAlias pathAlias = new RequirePathAlias();
+            pathAlias.alias = getJSPropertyName(node);
+            pathAlias.path = getJSPropertyLiteralValue(node);
+            requirePaths.addPath(pathAlias);
+
             TreeElement path = (TreeElement) node.findChildByType(JSElementTypes.LITERAL_EXPRESSION);
             TreeElement alias = node.getFirstChildNode();
             if (null != path && null != alias) {
@@ -612,6 +610,31 @@ public class RequirejsProjectComponent implements ProjectComponent {
         }
 
         return list;
+    }
+
+    public VirtualFile resolvePath(String path) {
+        VirtualFile rootDirectory;
+        if (path.startsWith(".")) {
+            rootDirectory = getBaseUrlPath(false);
+        } else if (path.startsWith("/")) {
+            rootDirectory = getWebDir();
+        } else {
+            rootDirectory = getBaseUrlPath(false);
+        }
+
+        if (null != rootDirectory) {
+            VirtualFile directoryVF = rootDirectory.findFileByRelativePath(path);
+            if (null != directoryVF) {
+                return directoryVF;
+            } else {
+                VirtualFile fileVF = rootDirectory.findFileByRelativePath(path + ".js");
+                if (null != fileVF) {
+                    return fileVF;
+                }
+            }
+        }
+
+        return null;
     }
 
     public PsiElement requireResolve(PsiElement element) {
@@ -651,22 +674,9 @@ public class RequirejsProjectComponent implements ProjectComponent {
             return PsiManager.getInstance(element.getProject()).findFile(targetFile);
         }
 
-        VirtualFile module = getModuleVFile(valuePath);
-        if (null != module) {
-            return PsiManager
-                    .getInstance(element.getProject())
-                    .findFile(module);
-        }
-
-        if (null != getConfigPaths()) {
-            for (Map.Entry<String, VirtualFile> entry : getConfigPaths().entrySet()) {
-                if (valuePath.startsWith(entry.getKey())) {
-                    targetFile = FileUtils.findFileByPath(entry.getValue(), valuePath.replaceFirst(entry.getKey(), ""));
-                    if (null != targetFile) {
-                        return PsiManager.getInstance(element.getProject()).findFile(targetFile);
-                    }
-                }
-            }
+        targetFile = requirePaths.resolve(valuePath);
+        if (null != targetFile) {
+            return PsiManager.getInstance(project).findFile(targetFile);
         }
 
         String requireMapModule = FileUtils.removeExt(element.getContainingFile().getVirtualFile().getPath().replace(
@@ -803,6 +813,7 @@ public class RequirejsProjectComponent implements ProjectComponent {
 
         for (Package pkg : packageConfig.packages) {
             if (relativePath.startsWith(pkg.location)) {
+                // TODO: tests not coverage this code
                 VirtualFile pkgLocation = getConfigFileDir().findFileByRelativePath(pkg.location);
                 if (null != pkgLocation) {
                     List<String> packageFiles = FileUtils.getAllFilesInDirectory(pkgLocation, pkgLocation.getPath(), pkg.name);
