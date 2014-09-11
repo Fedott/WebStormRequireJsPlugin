@@ -1,9 +1,6 @@
 package requirejs;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class RequireMapModule {
     public String module;
@@ -15,5 +12,9 @@ public class RequireMapModule {
 
     public RequirePathAlias getAlias(String aliasString) {
         return aliases.get(aliasString);
+    }
+
+    public Set<String> getAliases() {
+        return aliases.keySet();
     }
 }

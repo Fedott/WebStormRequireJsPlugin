@@ -2,6 +2,9 @@ package requirejs;
 
 import com.intellij.psi.PsiReference;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class MapTest extends RequirejsTestCase {
     @Override
     public void setUp() throws Exception {
@@ -50,5 +53,86 @@ public class MapTest extends RequirejsTestCase {
 
         reference = getReferenceForHumanPosition(3, 26);
         assertReference(reference, "'bar'", "bar2.0r1.js");
+    }
+
+    public void testCompletionNewModule() {
+        List<String> strings;
+
+        myFixture.configureByFile("mapPublic/some/newModule.js");
+
+        // foo
+        strings = getCompletionStringsForHumanPosition(5, 25);
+        assertCompletionList(Arrays.asList(
+                "foo",
+                "foo1.0",
+                "foo1.2",
+                "foo1.3"
+        ), strings);
+
+        // bar
+        strings = getCompletionStringsForHumanPosition(6, 25);
+        assertCompletionList(Arrays.asList(
+                "bar",
+                "bar2.0r1"
+        ), strings);
+
+        // only in new module
+        strings = getCompletionStringsForHumanPosition(7, 38);
+        assertNull(strings);
+        assertCompletionSingle("onlyInNewModule");
+    }
+
+    public void testCompletionOldModule() {
+        List<String> strings;
+
+        myFixture.configureByFile("mapPublic/some/oldModule.js");
+
+        // foo
+        strings = getCompletionStringsForHumanPosition(5, 25);
+        assertCompletionList(Arrays.asList(
+                "foo",
+                "foo1.0",
+                "foo1.2",
+                "foo1.3"
+        ), strings);
+
+        // bar
+        strings = getCompletionStringsForHumanPosition(6, 25);
+        assertCompletionList(Arrays.asList(
+                "bar",
+                "bar2.0r1"
+        ), strings);
+
+        // only in new module
+        strings = getCompletionStringsForHumanPosition(7, 38);
+        assertNull(strings);
+        assertCompletionSingle("onlyInOldModule");
+    }
+
+    public void testCompletionOtherModule() {
+        List<String> strings;
+
+        myFixture.configureByFile("mapPublic/some/newModule.js");
+
+        // foo
+        strings = getCompletionStringsForHumanPosition(5, 25);
+        assertCompletionList(Arrays.asList(
+                "foo",
+                "foo1.0",
+                "foo1.2",
+                "foo1.3"
+        ), strings);
+
+        // bar
+        strings = getCompletionStringsForHumanPosition(6, 25);
+        assertCompletionList(Arrays.asList(
+                "bar",
+                "bar2.0r1"
+        ), strings);
+
+        // only in new module
+        strings = getCompletionStringsForHumanPosition(7, 31);
+        assertFalse(strings.contains("onlyInNewModule"));
+        assertFalse(strings.contains("onlyInOldModule"));
     }
 }

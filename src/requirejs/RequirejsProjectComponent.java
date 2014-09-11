@@ -765,6 +765,20 @@ public class RequirejsProjectComponent implements ProjectComponent {
             }
         }
 
+        String requireMapModule = FileUtils.removeExt(element
+                .getContainingFile()
+                .getOriginalFile()
+                .getVirtualFile()
+                .getPath()
+                .replace(
+                    getWebDir().getPath() + '/',
+                    ""
+                ),
+            ".js"
+        );
+
+        completions.addAll(requireMap.getCompletionByModule(requireMapModule));
+
         String valuePathForAlias = valuePath;
         if (!oneDot && 0 == doubleDotCount && !startSlash && !getBaseUrl().isEmpty()) {
             valuePath = FileUtils.join(getBaseUrl(), valuePath);

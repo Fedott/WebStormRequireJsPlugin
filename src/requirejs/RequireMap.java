@@ -27,4 +27,18 @@ public class RequireMap {
 
         return alias;
     }
+
+    public List<String> getCompletionByModule(String moduleName) {
+        List<String> completions = new ArrayList<String>();
+
+        if (modules.containsKey(moduleName)) {
+            completions.addAll(modules.get(moduleName).getAliases());
+        }
+
+        if (modules.containsKey("*")) {
+            completions.addAll(modules.get("*").getAliases());
+        }
+
+        return completions;
+    }
 }
