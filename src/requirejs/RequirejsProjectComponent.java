@@ -43,8 +43,6 @@ public class RequirejsProjectComponent implements ProjectComponent {
     private VirtualFile requirejsBaseUrlPath;
     private String requirejsBaseUrl;
 
-    protected Map<String, VirtualFile> requirejsConfigModules;
-    protected Map<String, VirtualFile> requirejsConfigPaths;
     protected RequirePaths requirePaths;
     protected RequireMap requireMap = new RequireMap();
 
@@ -168,24 +166,14 @@ public class RequirejsProjectComponent implements ProjectComponent {
         Notifications.Bus.notify(errorNotification, this.project);
     }
 
-    public Map<String, VirtualFile> getConfigPaths() {
-        if (requirejsConfigPaths == null) {
-            if (!parseRequirejsConfig()) {
-                return requirejsConfigPaths;
-            }
-        }
-
-        return requirejsConfigPaths;
-    }
-
     public List<String> getModulesNames() {
         List<String> modules = new ArrayList<String>();
-        if (requirejsConfigModules == null) {
+        if (requirePaths.isEmpty()) {
             if (!parseRequirejsConfig()) {
                 return modules;
             }
         }
-        modules.addAll(requirejsConfigModules.keySet());
+        modules.addAll(requirePaths.getAliasToFiles());
         Collection<Package> filteredPackages = Collections2.filter(packageConfig.packages, new Predicate<Package>() {
             @Override
             public boolean apply(Package aPackage) {
@@ -260,18 +248,9 @@ public class RequirejsProjectComponent implements ProjectComponent {
                 requireMap.clear();
                 requirePaths.clear();
                 if (((PsiFileImpl) mainJs).getTreeElement() == null) {
-                    allConfigPaths = parseMainJsFile(((PsiFileImpl) mainJs).calcTreeElement());
+                    parseMainJsFile(((PsiFileImpl) mainJs).calcTreeElement());
                 } else {
-                    allConfigPaths = parseMainJsFile(((PsiFileImpl) mainJs).getTreeElement());
-                }
-                requirejsConfigModules = new HashMap<String, VirtualFile>();
-                requirejsConfigPaths = new HashMap<String, VirtualFile>();
-                for (Map.Entry<String, VirtualFile> entry : allConfigPaths.entrySet()) {
-                    if (entry.getValue().isDirectory()) {
-                        requirejsConfigPaths.put(entry.getKey(), entry.getValue());
-                    } else {
-                        requirejsConfigModules.put(entry.getKey(), entry.getValue());
-                    }
+                    parseMainJsFile(((PsiFileImpl) mainJs).getTreeElement());
                 }
             } else {
                 this.showErrorConfigNotification("Config file wrong format");
@@ -283,17 +262,16 @@ public class RequirejsProjectComponent implements ProjectComponent {
         return true;
     }
 
-    public Map<String, VirtualFile> parseMainJsFile(TreeElement node) {
-        Map<String, VirtualFile> list = new HashMap<String, VirtualFile>();
+    public void parseMainJsFile(TreeElement node) {
 
         TreeElement firstChild = node.getFirstChildNode();
         if (firstChild != null) {
-            list.putAll(parseMainJsFile(firstChild));
+            parseMainJsFile(firstChild);
         }
 
         TreeElement nextNode = node.getTreeNext();
         if (nextNode != null) {
-            list.putAll(parseMainJsFile(nextNode));
+            parseMainJsFile(nextNode);
         }
 
         if (node.getElementType() == JSTokenTypes.IDENTIFIER) {
@@ -304,38 +282,32 @@ public class RequirejsProjectComponent implements ProjectComponent {
                     ASTNode firstTreeChild = treeParent.findChildByType(JSElementTypes.OBJECT_LITERAL_EXPRESSION);
                     TreeElement nextTreeElement = treeParent.getTreeNext();
                     if (null != firstTreeChild) {
-                        list.putAll(
-                            parseRequirejsConfig((TreeElement) firstTreeChild
-                                .getFirstChildNode()
-                            )
+                        parseRequirejsConfig((TreeElement) firstTreeChild
+                            .getFirstChildNode()
                         );
                     } else if (null != nextTreeElement && nextTreeElement.getElementType() == JSTokenTypes.DOT) {
                         nextTreeElement = nextTreeElement.getTreeNext();
                         if (null != nextTreeElement && nextTreeElement.getText().equals("config")) {
                             treeParent = nextTreeElement.getTreeParent();
-                            findAndParseConfig(list, treeParent);
+                            findAndParseConfig(treeParent);
                         }
                     } else {
-                        findAndParseConfig(list, treeParent);
+                        findAndParseConfig(treeParent);
                     }
                 }
             }
         }
-
-        return list;
     }
 
-    protected void findAndParseConfig(Map<String, VirtualFile> list, TreeElement treeParent) {
+    protected void findAndParseConfig(TreeElement treeParent) {
         TreeElement nextTreeElement;
         if (null != treeParent) {
             nextTreeElement = treeParent.getTreeNext();
             if (null != nextTreeElement) {
                 ASTNode nextChild = nextTreeElement.findChildByType(JSElementTypes.OBJECT_LITERAL_EXPRESSION);
                 if (null != nextChild) {
-                    list.putAll(
-                            parseRequirejsConfig(
-                                    (TreeElement) nextChild.getFirstChildNode()
-                            )
+                    parseRequirejsConfig(
+                            (TreeElement) nextChild.getFirstChildNode()
                     );
                 }
             }
@@ -350,10 +322,9 @@ public class RequirejsProjectComponent implements ProjectComponent {
         return text.replaceAll("\"", "").replaceAll("'", "");
     }
 
-    public Map<String, VirtualFile> parseRequirejsConfig(TreeElement node) {
-        Map<String, VirtualFile> list = new HashMap<String, VirtualFile>();
+    public void parseRequirejsConfig(TreeElement node) {
         if (null == node) {
-            return list;
+            return ;
         }
 
         try {
@@ -376,12 +347,10 @@ public class RequirejsProjectComponent implements ProjectComponent {
                         setBaseUrl(baseUrl);
                         packageConfig.baseUrl = baseUrl;
                     } else if (identifierName.equals("paths")) {
-                        list.putAll(
-                                parseRequireJsPaths(
-                                        (TreeElement) node
-                                                .findChildByType(JSElementTypes.OBJECT_LITERAL_EXPRESSION)
-                                                .getFirstChildNode()
-                                )
+                        parseRequireJsPaths(
+                                (TreeElement) node
+                                        .findChildByType(JSElementTypes.OBJECT_LITERAL_EXPRESSION)
+                                        .getFirstChildNode()
                         );
                     } else if (identifierName.equals("packages")) {
                         TreeElement packages = (TreeElement) node.findChildByType(JSElementTypes.ARRAY_LITERAL_EXPRESSION);
@@ -400,10 +369,8 @@ public class RequirejsProjectComponent implements ProjectComponent {
 
         TreeElement next = node.getTreeNext();
         if (null != next) {
-            list.putAll(parseRequirejsConfig(next));
+            parseRequirejsConfig(next);
         }
-
-        return list;
     }
 
     protected void parseMapsConfig(TreeElement mapElement) {
@@ -563,10 +530,9 @@ public class RequirejsProjectComponent implements ProjectComponent {
         requirejsBaseUrlPath = firstContentRoot.findFileByRelativePath(baseUrl);
     }
 
-    protected Map<String, VirtualFile> parseRequireJsPaths(TreeElement node) {
-        Map<String, VirtualFile> list = new HashMap<String, VirtualFile>();
+    protected void parseRequireJsPaths(TreeElement node) {
         if (null == node) {
-            return list;
+            return ;
         }
 
         if (node.getElementType() == JSElementTypes.PROPERTY) {
@@ -574,42 +540,12 @@ public class RequirejsProjectComponent implements ProjectComponent {
             pathAlias.alias = getJSPropertyName(node);
             pathAlias.path = getJSPropertyLiteralValue(node);
             requirePaths.addPath(pathAlias);
-
-            TreeElement path = (TreeElement) node.findChildByType(JSElementTypes.LITERAL_EXPRESSION);
-            TreeElement alias = node.getFirstChildNode();
-            if (null != path && null != alias) {
-                String pathString = dequote(path.getText());
-                String aliasString = dequote(alias.getText());
-
-                VirtualFile rootDirectory;
-                if (pathString.startsWith(".")) {
-                    rootDirectory = getBaseUrlPath(false);
-                } else if (pathString.startsWith("/")) {
-                    rootDirectory = getWebDir();
-                } else {
-                    rootDirectory = getBaseUrlPath(false);
-                }
-
-                if (null != rootDirectory) {
-                    VirtualFile directoryVF = rootDirectory.findFileByRelativePath(pathString);
-                    if (null != directoryVF) {
-                        list.put(aliasString, directoryVF);
-                    } else {
-                        VirtualFile fileVF = rootDirectory.findFileByRelativePath(pathString + ".js");
-                        if (null != fileVF) {
-                            list.put(aliasString, fileVF);
-                        }
-                    }
-                }
-            }
         }
 
         TreeElement next = node.getTreeNext();
         if (null != next) {
-            list.putAll(parseRequireJsPaths(next));
+            parseRequireJsPaths(next);
         }
-
-        return list;
     }
 
     public VirtualFile resolvePath(String path) {
@@ -799,7 +735,7 @@ public class RequirejsProjectComponent implements ProjectComponent {
         }
 
         List<String> allFiles = FileUtils.getAllFilesInDirectory(getWebDir(), getWebDir().getPath() + '/', "");
-        List<String> aliasFiles = getAllFilesForConfigPaths();
+        List<String> aliasFiles = requirePaths.getAllFilesOnPaths();
 
         // get project relative path
         VirtualFile contentRoot = getContentRoot(fileDirectory.getVirtualFile());
@@ -888,25 +824,6 @@ public class RequirejsProjectComponent implements ProjectComponent {
         } else if (file.endsWith(".js")) {
             completions.add(file.replace(".js", ""));
         }
-    }
-
-    protected List<String> getAllFilesForConfigPaths() {
-        List<String> strings = new ArrayList<String>();
-
-        Map<String, VirtualFile> configPaths = getConfigPaths();
-        if (null != configPaths) {
-            for (Map.Entry<String, VirtualFile> entry : configPaths.entrySet()) {
-                strings.addAll(
-                        FileUtils.getAllFilesInDirectory(
-                                entry.getValue(),
-                                entry.getValue().getPath(),
-                                entry.getKey()
-                        )
-                );
-            }
-        }
-
-        return strings;
     }
 
     // -------------------------------------------------------------------------

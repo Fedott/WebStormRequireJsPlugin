@@ -2,7 +2,9 @@ package requirejs;
 
 import com.intellij.openapi.vfs.VirtualFile;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class RequirePaths {
@@ -16,6 +18,10 @@ public class RequirePaths {
 
     public void clear() {
         paths.clear();
+    }
+
+    public boolean isEmpty() {
+        return paths.isEmpty();
     }
 
     public void addPath(RequirePathAlias pathAlias) {
@@ -46,5 +52,35 @@ public class RequirePaths {
         }
 
         return null;
+    }
+
+    public List<String> getAllFilesOnPaths() {
+        List<String> files = new ArrayList<String>();
+        for (RequirePathAlias pathAlias : paths.values()) {
+            VirtualFile directory = component.resolvePath(pathAlias.path);
+            if (null != directory && directory.isDirectory()) {
+                files.addAll(
+                        FileUtils.getAllFilesInDirectory(
+                                directory,
+                                directory.getPath(),
+                                pathAlias.alias
+                        )
+                );
+            }
+        }
+
+        return files;
+    }
+
+    public List<String> getAliasToFiles() {
+        List<String> aliases = new ArrayList<String>();
+        for (RequirePathAlias pathAlias : paths.values()) {
+            VirtualFile directory = component.resolvePath(pathAlias.path);
+            if (null != directory && !directory.isDirectory()) {
+                aliases.add(pathAlias.alias);
+            }
+        }
+
+        return aliases;
     }
 }
