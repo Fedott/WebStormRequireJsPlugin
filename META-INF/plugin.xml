@@ -1,7 +1,7 @@
 <idea-plugin version="2" url="https://github.com/Fedott/WebStormRequireJsPlugin">
   <id>com.fedot.idea.requirejs</id>
   <name>Require.js plugin</name>
-  <version>0.18</version>
+  <version>0.19</version>
   <vendor email="fedotru@gmail.com" url="http://github.com/Fedott/">Vladimir Fedorov</vendor>
 
   <depends>com.intellij.modules.platform</depends>
@@ -13,12 +13,19 @@
         - Completion file paths<br />
         - Reference find files<br />
         - Completion path for loader plugin (path start with "module!")<br />
+        - Paths support <br />
+        - Map support <br />
+        - Package support <br />
       ]]></description>
 
-  <change-notes><![CDATA[
-      Version 0.18 <br />
-        - Improve packages support <br />
-        - Fix all tests <br />
+    <change-notes><![CDATA[
+    Version 0.19 <br />
+    - Added map support <br />
+    - Fix bugs <br />
+    - Refactoring packages and paths supports<br />
+    Version 0.18 <br />
+    - Improve packages support <br />
+    - Fix all tests <br />
       Version 0.17 <br />
         - Fix issue with requirejs loader plugin and packages reference resolving <br />
       Version 0.16 <br />
