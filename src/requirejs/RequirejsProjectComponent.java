@@ -47,12 +47,13 @@ public class RequirejsProjectComponent implements ProjectComponent {
     protected RequireMap requireMap = new RequireMap();
 
     private RequireConfigVfsListener vfsListener;
-    public PackageConfig packageConfig = new PackageConfig();
+    public PackageConfig packageConfig;
 
     public RequirejsProjectComponent(Project project) {
         this.project = project;
         settings = Settings.getInstance(project);
         requirePaths = new RequirePaths(this);
+        packageConfig = new PackageConfig(this);
     }
 
     @Override
@@ -736,34 +737,7 @@ public class RequirejsProjectComponent implements ProjectComponent {
 
         List<String> allFiles = FileUtils.getAllFilesInDirectory(getWebDir(), getWebDir().getPath() + '/', "");
         List<String> aliasFiles = requirePaths.getAllFilesOnPaths();
-
-        // get project relative path
-        VirtualFile contentRoot = getContentRoot(fileDirectory.getVirtualFile());
-        String relativePath;
-        if (fileDirectory.getVirtualFile().getPath().equals(contentRoot.getPath())) {
-            relativePath = "";
-        } else {
-            relativePath = fileDirectory.getVirtualFile().getPath().substring(contentRoot.getPath().length() + 1);
-        }
-        String relativeFilePath = element.getContainingFile().getOriginalFile().getVirtualFile().getPath().substring(contentRoot.getPath().length() + 1);
-
-        for (Package pkg : packageConfig.packages) {
-            if (relativePath.startsWith(pkg.location)) {
-                // TODO: tests not coverage this code
-                VirtualFile pkgLocation = getConfigFileDir().findFileByRelativePath(pkg.location);
-                if (null != pkgLocation) {
-                    List<String> packageFiles = FileUtils.getAllFilesInDirectory(pkgLocation, pkgLocation.getPath(), pkg.name);
-                    for (String file : packageFiles) {
-                        // filter out entry
-                        // TODO filter out current file
-                        String moduleId = pkg.name + '/' + relativeFilePath.substring(pkg.location.length() + 1);
-                        if (isModuleAccessible(pkg, file, moduleId)) {
-                            aliasFiles.add(file);
-                        }
-                    }
-                }
-            }
-        }
+        aliasFiles.addAll(packageConfig.getAllFilesOnPackages());
 
         String requireMapModule = FileUtils.removeExt(element
                 .getContainingFile()

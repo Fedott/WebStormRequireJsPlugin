@@ -4,4 +4,6 @@ define(function(require) {
     var depend3 = require('packageSimple/');
     var depend4 = require('packageDirN');
     var depend5 = require('packageDirNotExists/');
+    var depend6 = require('location');
+    var depend7 = require('locationMainPackage/')
 })

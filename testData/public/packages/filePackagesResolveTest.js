@@ -8,4 +8,6 @@ define(function(require) {
     var depend7 = require('packageWithMainNotExists/otherFile');
     var depend8 = require('packageSimple/main');
     var depend9 = require('packageWithLocation');
+    var depend10 = require('locationMainPackage');
+    var depend11 = require('locationPackage');
 })

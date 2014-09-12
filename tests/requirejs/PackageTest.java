@@ -19,6 +19,10 @@ public class PackageTest extends RequirejsTestCase {
                 "public/packages/packageWithName/main.js",
                 "public/packages/packageSimple/otherFile.js",
                 "public/packages/packageWithMainNotExists/otherFile.js",
+                "public/sub/packages/locationMainPackage/location.js",
+                "public/sub/packages/locationMainPackage/otherFile.js",
+                "public/sub/packages/locationPackage/main.js",
+                "public/sub/packages/locationPackage/otherFile.js",
                 "public/packages/configWithPackages.js"
         );
         setWebPathSetting();
@@ -31,11 +35,14 @@ public class PackageTest extends RequirejsTestCase {
                 "packageSimple",
                 "packageSimple/otherFile",
                 "packageWithName",
+                "packageWithName/main",
                 "packageWithMain",
                 "packageWithLocation",
                 "packageWithLocationAndMain",
-                "packageWithMainNotExists/otherFile"
-        ), 12, strings);
+                "packageWithMainNotExists/otherFile",
+                "locationMainPackage",
+                "locationPackage"
+        ), 14, strings);
     }
 
     public void testCompletion2() {
@@ -63,6 +70,24 @@ public class PackageTest extends RequirejsTestCase {
     public void testCompletion5() {
         List<String> strings = getCompletionStringsForHumanPosition(6, 48);
         strings.isEmpty();
+    }
+
+    public void testCompletion6() {
+        List<String> strings = getCompletionStringsForHumanPosition(7, 36);
+        assertCompletionList(Arrays.asList(
+                "locationPackage",
+                "locationPackage/otherFile",
+                "locationMainPackage",
+                "locationMainPackage/otherFile",
+                "packageWithLocation",
+                "packageWithLocationAndMain"
+        ), strings);
+    }
+
+    public void testCompletion7() {
+        List<String> strings = getCompletionStringsForHumanPosition(8, 48);
+        assertNull(strings);
+        assertCompletionSingle("locationMainPackage/otherFile");
     }
 
     public void testReference1()
@@ -153,5 +178,25 @@ public class PackageTest extends RequirejsTestCase {
         // 1
         reference = getReferenceForHumanPosition(10, 35);
         assertReference(reference, "'packageWithLocation'", "main.js");
+    }
+
+    public void testReference10()
+    {
+        myFixture.configureByFile("public/packages/filePackagesResolveTest.js");
+        PsiReference reference;
+
+        // 1
+        reference = getReferenceForHumanPosition(11, 35);
+        assertReference(reference, "'locationMainPackage'", "location.js");
+    }
+
+    public void testReference11()
+    {
+        myFixture.configureByFile("public/packages/filePackagesResolveTest.js");
+        PsiReference reference;
+
+        // 1
+        reference = getReferenceForHumanPosition(12, 35);
+        assertReference(reference, "'locationPackage'", "main.js");
     }
 }

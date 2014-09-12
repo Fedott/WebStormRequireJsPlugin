@@ -21,6 +21,15 @@ require({
         {
             name: "packageWithMainNotExists",
             main: "notExists"
+        },
+        {
+            name: "locationMainPackage",
+            main: "location"
+            location: "../sub/packages/locationMainPackage"
+        },
+        {
+            name: "locationPackage",
+            location: "../sub/packages/locationPackage"
         }
     ]
 })
