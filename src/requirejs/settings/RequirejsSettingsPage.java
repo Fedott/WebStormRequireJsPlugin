@@ -53,7 +53,9 @@ public class RequirejsSettingsPage implements Configurable {
 
     @Override
     public void apply() throws ConfigurationException {
+        project.getComponent(RequirejsProjectComponent.class).clearParse();
         saveSettings();
+
         PsiManager.getInstance(project).dropResolveCaches();
     }
 

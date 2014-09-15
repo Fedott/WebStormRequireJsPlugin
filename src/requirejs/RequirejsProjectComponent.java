@@ -40,7 +40,7 @@ public class RequirejsProjectComponent implements ProjectComponent {
     protected String settingVersionLastShowNotification;
 
     private static final Logger LOG = Logger.getInstance("Requirejs-Plugin");
-    private VirtualFile requirejsBaseUrlPath;
+
     private String requirejsBaseUrl;
 
     protected RequirePaths requirePaths;
@@ -134,6 +134,13 @@ public class RequirejsProjectComponent implements ProjectComponent {
         return true;
     }
 
+    public void clearParse() {
+        requirejsBaseUrl = null;
+        requirePaths.clear();
+        requireMap.clear();
+        packageConfig.clear();
+    }
+
     protected void showErrorConfigNotification(String content) {
         if (!settings.getVersion().equals(settingVersionLastShowNotification)) {
             settingVersionLastShowNotification = settings.getVersion();
@@ -142,11 +149,24 @@ public class RequirejsProjectComponent implements ProjectComponent {
     }
 
     public VirtualFile getWebDir() {
-        VirtualFile contentRoot = getContentRoot();
-        if (settings.publicPath.isEmpty()) {
-            return contentRoot;
+        VirtualFile vfWebDir = findPathInContentRoot(settings.publicPath);
+        if (null != vfWebDir) {
+            return vfWebDir;
+        } else {
+            return null;
         }
-        return contentRoot.findFileByRelativePath(settings.publicPath);
+    }
+
+    protected VirtualFile findPathInWebDir(String path) {
+        if (settings.publicPath.isEmpty()) {
+            return findPathInContentRoot(path);
+        }
+        VirtualFile vfWebDir = getWebDir();
+        if (null != vfWebDir) {
+            return vfWebDir.findFileByRelativePath(path);
+        } else {
+            return null;
+        }
     }
 
     public VirtualFile getContentRoot() {
@@ -158,8 +178,20 @@ public class RequirejsProjectComponent implements ProjectComponent {
         }
     }
 
-    public VirtualFile getContentRoot(VirtualFile file) {
-        return ProjectRootManager.getInstance(project).getFileIndex().getContentRootForFile(file);
+    protected VirtualFile findPathInContentRoot(String path) {
+        VirtualFile[] contentRoots = ProjectRootManager.getInstance(project).getContentRoots();
+        if (contentRoots.length > 0) {
+            for(VirtualFile contentRoot : contentRoots) {
+                VirtualFile vfPath = contentRoot.findFileByRelativePath(path);
+                if (null != vfPath) {
+                    return vfPath;
+                }
+            }
+
+            return null;
+        } else {
+            return project.getBaseDir().findFileByRelativePath(path);
+        }
     }
 
     public void showInfoNotification(String content, NotificationType type) {
@@ -209,23 +241,20 @@ public class RequirejsProjectComponent implements ProjectComponent {
     }
 
     public VirtualFile getBaseUrlPath(boolean parseConfig) {
-        if (null == requirejsBaseUrlPath) {
+        if (null == requirejsBaseUrl) {
             if (parseConfig) {
                 parseRequirejsConfig();
             }
-            if (null == requirejsBaseUrlPath) {
-                requirejsBaseUrlPath = getConfigFileDir();
+            if (null == requirejsBaseUrl) {
+                return getConfigFileDir();
             }
         }
 
-        return requirejsBaseUrlPath;
+        return findPathInWebDir(requirejsBaseUrl);
     }
 
     protected VirtualFile getConfigFileDir() {
-        VirtualFile mainJsVirtualFile = getWebDir()
-                .findFileByRelativePath(
-                        settings.configFilePath
-                );
+        VirtualFile mainJsVirtualFile = findPathInWebDir(settings.configFilePath);
         if (null != mainJsVirtualFile) {
             return mainJsVirtualFile.getParent();
         } else {
@@ -236,7 +265,7 @@ public class RequirejsProjectComponent implements ProjectComponent {
 //    private Date lastParse;
 
     public boolean parseRequirejsConfig() {
-        VirtualFile mainJsVirtualFile = getWebDir().findFileByRelativePath(settings.configFilePath);
+        VirtualFile mainJsVirtualFile = findPathInWebDir(settings.configFilePath);
         if (null == mainJsVirtualFile) {
             this.showErrorConfigNotification("Config file not found. File " + settings.publicPath + '/' + settings.configFilePath + " not found in project");
             LOG.debug("Config not found");
@@ -525,10 +554,6 @@ public class RequirejsProjectComponent implements ProjectComponent {
             baseUrl = StringUtil.trimEnd(baseUrl, "/");
         }
         requirejsBaseUrl = baseUrl;
-        baseUrl = settings.publicPath + '/' + baseUrl;
-
-        VirtualFile firstContentRoot = getContentRoot();
-        requirejsBaseUrlPath = firstContentRoot.findFileByRelativePath(baseUrl);
     }
 
     protected void parseRequireJsPaths(TreeElement node) {
@@ -605,10 +630,13 @@ public class RequirejsProjectComponent implements ProjectComponent {
             }
         }
 
-        targetFile = FileUtils.findFileByPath(getBaseUrlPath(true), valuePath);
+        VirtualFile baseUrl = getBaseUrlPath(true);
+        if (null != baseUrl) {
+            targetFile = FileUtils.findFileByPath(baseUrl, valuePath);
 
-        if (targetFile != null) {
-            return PsiManager.getInstance(element.getProject()).findFile(targetFile);
+            if (targetFile != null) {
+                return PsiManager.getInstance(element.getProject()).findFile(targetFile);
+            }
         }
 
         targetFile = requirePaths.resolve(valuePath);
@@ -819,11 +847,7 @@ public class RequirejsProjectComponent implements ProjectComponent {
     // -------------------------------------------------------------------------
     private class RequireConfigVfsListener extends VirtualFileAdapter {
         public void contentsChanged(@NotNull VirtualFileEvent event) {
-            VirtualFile publicPath = getContentRoot().findFileByRelativePath(settings.publicPath);
-            if (publicPath == null || !publicPath.exists()) {
-                return;
-            }
-            VirtualFile confFile = publicPath.findChild(settings.configFilePath);
+            VirtualFile confFile = findPathInWebDir(settings.configFilePath);
             if (confFile == null || !confFile.exists() || !event.getFile().equals(confFile)) {
                 return;
             }
