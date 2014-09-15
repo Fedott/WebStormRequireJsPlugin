@@ -631,6 +631,10 @@ public class RequirejsProjectComponent implements ProjectComponent {
             }
         }
 
+        if (value.equals("exports") || value.equals("module")) {
+            return element.getContainingFile();
+        }
+
         if (valuePath.startsWith("/")) {
             targetFile = FileUtils.findFileByPath(getWebDir(elementFile), valuePath);
             if (null != targetFile) {

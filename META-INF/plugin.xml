@@ -21,6 +21,7 @@
   <change-notes><![CDATA[
     Version 0.20 <br />
     - Fix multi modules project bugs <br />
+    - Added resolving magic AMD modules (exports, module) <br />
     Version 0.19 <br />
     - Added map support <br />
     - Fix bugs <br />

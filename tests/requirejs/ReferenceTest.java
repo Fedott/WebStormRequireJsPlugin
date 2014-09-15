@@ -344,4 +344,14 @@ public class ReferenceTest extends RequirejsTestCase {
         PsiReference reference = getReferenceForHumanPosition(9, 13);
         assertReference(reference, "block/block", "block.js");
     }
+
+    public void testMagicModulesReference() {
+        myFixture.configureByFile("public/fileWithMagicModules.js");
+
+        PsiReference reference = getReferenceForHumanPosition(2, 38);
+        assertReference(reference, "exports", "fileWithMagicModules.js");
+
+        reference = getReferenceForHumanPosition(3, 38);
+        assertReference(reference, "module", "fileWithMagicModules.js");
+    }
 }
