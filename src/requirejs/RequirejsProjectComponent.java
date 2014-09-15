@@ -148,13 +148,22 @@ public class RequirejsProjectComponent implements ProjectComponent {
         }
     }
 
-    public VirtualFile getWebDir() {
+    public VirtualFile getWebDir(VirtualFile elementFile) {
+        if (null != elementFile) {
+            if (settings.publicPath.isEmpty()) {
+                return getContentRoot(elementFile);
+            }
+        }
         VirtualFile vfWebDir = findPathInContentRoot(settings.publicPath);
         if (null != vfWebDir) {
             return vfWebDir;
         } else {
             return null;
         }
+    }
+
+    public VirtualFile getWebDir() {
+        return getWebDir(null);
     }
 
     protected VirtualFile findPathInWebDir(String path) {
@@ -176,6 +185,10 @@ public class RequirejsProjectComponent implements ProjectComponent {
         } else {
             return project.getBaseDir();
         }
+    }
+
+    public VirtualFile getContentRoot(VirtualFile file) {
+        return ProjectRootManager.getInstance(project).getFileIndex().getContentRootForFile(file);
     }
 
     protected VirtualFile findPathInContentRoot(String path) {
@@ -579,6 +592,7 @@ public class RequirejsProjectComponent implements ProjectComponent {
         if (path.startsWith(".")) {
             rootDirectory = getBaseUrlPath(false);
         } else if (path.startsWith("/")) {
+            // TODO: Check work on multi modules idea project and empty web path
             rootDirectory = getWebDir();
         } else {
             rootDirectory = getBaseUrlPath(false);
@@ -601,6 +615,10 @@ public class RequirejsProjectComponent implements ProjectComponent {
 
     public PsiElement requireResolve(PsiElement element) {
         VirtualFile targetFile;
+        VirtualFile elementFile = element
+                .getContainingFile()
+                .getOriginalFile()
+                .getVirtualFile();
 
         String value = dequote(element.getText());
         String valuePath = value;
@@ -614,7 +632,7 @@ public class RequirejsProjectComponent implements ProjectComponent {
         }
 
         if (valuePath.startsWith("/")) {
-            targetFile = FileUtils.findFileByPath(getWebDir(), valuePath);
+            targetFile = FileUtils.findFileByPath(getWebDir(elementFile), valuePath);
             if (null != targetFile) {
                 return PsiManager.getInstance(element.getProject()).findFile(targetFile);
             } else {
@@ -645,13 +663,13 @@ public class RequirejsProjectComponent implements ProjectComponent {
         }
 
         String requireMapModule = FileUtils.removeExt(element.getContainingFile().getVirtualFile().getPath().replace(
-                getWebDir().getPath() + '/',
+                getWebDir(elementFile).getPath() + '/',
                 ""
         ), ".js");
 
         RequirePathAlias alias = requireMap.getAliasByModule(requireMapModule, valuePath);
         if (null != alias) {
-            targetFile = FileUtils.findFileByPath(getWebDir(), alias.path);
+            targetFile = FileUtils.findFileByPath(getWebDir(elementFile), alias.path);
             if (null != targetFile) {
                 return PsiManager.getInstance(project).findFile(targetFile);
             }
@@ -693,6 +711,10 @@ public class RequirejsProjectComponent implements ProjectComponent {
         boolean notEndSlash = false;
         String pathOnDots = "";
         String dotString = "";
+        VirtualFile elementFile = element
+                .getContainingFile()
+                .getOriginalFile()
+                .getVirtualFile();
 
         if (exclamationMark) {
             String[] exclamationMarkSplit = valuePath.split("!");
@@ -713,6 +735,7 @@ public class RequirejsProjectComponent implements ProjectComponent {
             // expand current package
         }
 
+
         PsiDirectory fileDirectory = element
                 .getContainingFile()
                 .getOriginalFile()
@@ -723,7 +746,7 @@ public class RequirejsProjectComponent implements ProjectComponent {
         String filePath = fileDirectory
                 .getVirtualFile()
                 .getPath()
-                .replace(getWebDir().getPath(), "");
+                .replace(getWebDir(elementFile).getPath(), "");
         if (filePath.startsWith("/")) {
             filePath = filePath.substring(1);
         }
@@ -763,7 +786,11 @@ public class RequirejsProjectComponent implements ProjectComponent {
             }
         }
 
-        List<String> allFiles = FileUtils.getAllFilesInDirectory(getWebDir(), getWebDir().getPath() + '/', "");
+        List<String> allFiles = FileUtils.getAllFilesInDirectory(
+                getWebDir(elementFile),
+                getWebDir(elementFile).getPath() + '/',
+                ""
+        );
         List<String> aliasFiles = requirePaths.getAllFilesOnPaths();
         aliasFiles.addAll(packageConfig.getAllFilesOnPackages());
 
@@ -773,7 +800,7 @@ public class RequirejsProjectComponent implements ProjectComponent {
                 .getVirtualFile()
                 .getPath()
                 .replace(
-                    getWebDir().getPath() + '/',
+                    getWebDir(elementFile).getPath() + '/',
                     ""
                 ),
             ".js"
