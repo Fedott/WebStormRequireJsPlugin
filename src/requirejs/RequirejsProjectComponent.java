@@ -384,9 +384,16 @@ public class RequirejsProjectComponent implements ProjectComponent {
                 }
                 if (null != identifierName) {
                     if (identifierName.equals("baseUrl")) {
-                        String baseUrl = dequote(node
-                                .findChildByType(JSElementTypes.LITERAL_EXPRESSION)
-                                .getText());
+                        String baseUrl;
+                        if (!settings.overrideBaseUrl) {
+                            baseUrl = dequote(node
+                                    .findChildByType(JSElementTypes.LITERAL_EXPRESSION)
+                                    .getText());
+                        } else {
+                            LOG.info("baseUrl override is enabled, overriding with '" + settings.baseUrl + "'");
+                            baseUrl = settings.baseUrl;
+                        }
+                        LOG.info("Setting baseUrl to '" + baseUrl + "'");
                         setBaseUrl(baseUrl);
                         packageConfig.baseUrl = baseUrl;
                     } else if (identifierName.equals("paths")) {
