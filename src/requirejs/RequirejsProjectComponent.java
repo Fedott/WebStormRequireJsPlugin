@@ -384,19 +384,32 @@ public class RequirejsProjectComponent implements ProjectComponent {
                 }
                 if (null != identifierName) {
                     if (identifierName.equals("baseUrl")) {
-                        ASTNode baseUrlNode = node
-                                .findChildByType(JSElementTypes.LITERAL_EXPRESSION);
-                        if (null != baseUrlNode) {
-                            String baseUrl = dequote(baseUrlNode.getText());
+                        String baseUrl = null;
+                        if (!settings.overrideBaseUrl) {
+                            ASTNode baseUrlNode = node
+                                    .findChildByType(JSElementTypes.LITERAL_EXPRESSION);
+                            if (null != baseUrlNode) {
+                                baseUrl = dequote(baseUrlNode.getText());
+                            }
+                        } else {
+                            LOG.info("baseUrl override is enabled, overriding with '" + settings.baseUrl + "'");
+                            baseUrl = settings.baseUrl;
+                        }
+                        if (null != baseUrl) {
+                            LOG.info("Setting baseUrl to '" + baseUrl + "'");
                             setBaseUrl(baseUrl);
                             packageConfig.baseUrl = baseUrl;
+                        } else {
+                            LOG.debug("BaseUrl not set");
                         }
                     } else if (identifierName.equals("paths")) {
-                        parseRequireJsPaths(
-                                (TreeElement) node
-                                        .findChildByType(JSElementTypes.OBJECT_LITERAL_EXPRESSION)
-                                        .getFirstChildNode()
-                        );
+                        ASTNode pathsNode = node
+                                .findChildByType(JSElementTypes.OBJECT_LITERAL_EXPRESSION);
+                        if (null != pathsNode) {
+                            parseRequireJsPaths(
+                                    (TreeElement) pathsNode.getFirstChildNode()
+                            );
+                        }
                     } else if (identifierName.equals("packages")) {
                         TreeElement packages = (TreeElement) node.findChildByType(JSElementTypes.ARRAY_LITERAL_EXPRESSION);
                         LOG.debug("parsing packages");

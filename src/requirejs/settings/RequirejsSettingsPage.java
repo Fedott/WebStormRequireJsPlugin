@@ -18,6 +18,8 @@ public class RequirejsSettingsPage implements Configurable {
     private JTextField publicPathField;
     private JTextField configFilePathField;
     private JPanel panel;
+    private JCheckBox overrideBaseUrlCheckbox;
+    private JTextField baseUrlField;
 
     public RequirejsSettingsPage(@NotNull final Project project) {
         this.project = project;
@@ -48,7 +50,9 @@ public class RequirejsSettingsPage implements Configurable {
         return
                 !pluginEnabledCheckbox.isSelected() == getSettings().pluginEnabled
                 || !publicPathField.getText().equals(getSettings().publicPath)
-                || !configFilePathField.getText().equals(getSettings().configFilePath);
+                || !configFilePathField.getText().equals(getSettings().configFilePath)
+                || !overrideBaseUrlCheckbox.isSelected() == getSettings().overrideBaseUrl
+                || !baseUrlField.getText().equals(getSettings().baseUrl);
     }
 
     @Override
@@ -63,6 +67,10 @@ public class RequirejsSettingsPage implements Configurable {
         getSettings().pluginEnabled = pluginEnabledCheckbox.isSelected();
         getSettings().publicPath = publicPathField.getText();
         getSettings().configFilePath = configFilePathField.getText();
+        getSettings().overrideBaseUrl = overrideBaseUrlCheckbox.isSelected();
+        if (getSettings().overrideBaseUrl) {
+            getSettings().baseUrl = baseUrlField.getText();
+        }
 
         project.getComponent(RequirejsProjectComponent.class).validateSettings();
     }
@@ -71,6 +79,8 @@ public class RequirejsSettingsPage implements Configurable {
         pluginEnabledCheckbox.setSelected(getSettings().pluginEnabled);
         publicPathField.setText(getSettings().publicPath);
         configFilePathField.setText(getSettings().configFilePath);
+        overrideBaseUrlCheckbox.setSelected(getSettings().overrideBaseUrl);
+        baseUrlField.setText(getSettings().baseUrl);
     }
 
     @Override
