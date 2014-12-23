@@ -64,12 +64,12 @@ public class PackageTest extends RequirejsTestCase {
 
     public void testCompletion4() {
         List<String> strings = getCompletionStringsForHumanPosition(5, 39);
-        strings.isEmpty();
+        assertEmpty(strings);
     }
 
     public void testCompletion5() {
         List<String> strings = getCompletionStringsForHumanPosition(6, 48);
-        strings.isEmpty();
+        assertEmpty(strings);
     }
 
     public void testCompletion6() {
