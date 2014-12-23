@@ -650,7 +650,7 @@ public class RequirejsProjectComponent implements ProjectComponent {
             }
         }
 
-        if (value.equals("exports") || value.equals("module")) {
+        if (value.equals("exports") || value.equals("module") || value.equals("require")) {
             return element.getContainingFile();
         }
 

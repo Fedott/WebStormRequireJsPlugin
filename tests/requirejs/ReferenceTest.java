@@ -353,5 +353,8 @@ public class ReferenceTest extends RequirejsTestCase {
 
         reference = getReferenceForHumanPosition(3, 38);
         assertReference(reference, "module", "fileWithMagicModules.js");
+
+        reference = getReferenceForHumanPosition(4, 38);
+        assertReference(reference, "require", "fileWithMagicModules.js");
     }
 }
