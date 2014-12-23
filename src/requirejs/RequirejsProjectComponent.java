@@ -384,11 +384,13 @@ public class RequirejsProjectComponent implements ProjectComponent {
                 }
                 if (null != identifierName) {
                     if (identifierName.equals("baseUrl")) {
-                        String baseUrl = dequote(node
-                                .findChildByType(JSElementTypes.LITERAL_EXPRESSION)
-                                .getText());
-                        setBaseUrl(baseUrl);
-                        packageConfig.baseUrl = baseUrl;
+                        ASTNode baseUrlNode = node
+                                .findChildByType(JSElementTypes.LITERAL_EXPRESSION);
+                        if (null != baseUrlNode) {
+                            String baseUrl = dequote(baseUrlNode.getText());
+                            setBaseUrl(baseUrl);
+                            packageConfig.baseUrl = baseUrl;
+                        }
                     } else if (identifierName.equals("paths")) {
                         parseRequireJsPaths(
                                 (TreeElement) node
@@ -456,7 +458,11 @@ public class RequirejsProjectComponent implements ProjectComponent {
             alias.alias = getJSPropertyName(mapAliasProperty);
             alias.path = getJSPropertyLiteralValue(mapAliasProperty);
 
-            requireMapModule.addAlias(alias);
+            if (null != alias.alias && alias.path != null) {
+                requireMapModule.addAlias(alias);
+            } else {
+                LOG.debug("Error parse require js path", alias);
+            }
         }
 
         parseMapAliasProperty(requireMapModule, mapAliasProperty.getTreeNext());
@@ -464,7 +470,7 @@ public class RequirejsProjectComponent implements ProjectComponent {
 
     protected String getJSPropertyName(TreeElement jsProperty) {
         TreeElement identifier = (TreeElement) jsProperty.findChildByType(
-                TokenSet.create(JSTokenTypes.IDENTIFIER, JSTokenTypes.STRING_LITERAL)
+                TokenSet.create(JSTokenTypes.IDENTIFIER, JSTokenTypes.STRING_LITERAL, JSTokenTypes.PUBLIC_KEYWORD)
         );
         String identifierName = null;
         if (null != identifier) {

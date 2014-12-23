@@ -64,12 +64,24 @@ public class ConfigParseTest extends RequirejsTestCase
         myFixture
                 .getEditor()
                 .getCaretModel()
-                .moveToLogicalPosition(new LogicalPosition(1, 38));
+                .moveToLogicalPosition(new LogicalPosition(1, 36));
         reference = myFixture.getReferenceAtCaretPosition();
         assert (reference) != null;
         reference = ((PsiMultiReference)reference).getReferences()[1];
         assertTrue(reference instanceof RequirejsReference);
         assertEquals("'module'", reference.getCanonicalText());
+        referenceElement = reference.resolve();
+        assertEquals("rootWebPathConfigTest.js", ((JSFile) referenceElement).getName());
+
+        myFixture
+                .getEditor()
+                .getCaretModel()
+                .moveToLogicalPosition(new LogicalPosition(2, 36));
+        reference = myFixture.getReferenceAtCaretPosition();
+        assert (reference) != null;
+        reference = ((PsiMultiReference)reference).getReferences()[1];
+        assertTrue(reference instanceof RequirejsReference);
+        assertEquals("'moduleR'", reference.getCanonicalText());
         referenceElement = reference.resolve();
         assertNull(referenceElement);
 

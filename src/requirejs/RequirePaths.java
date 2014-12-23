@@ -42,7 +42,7 @@ public class RequirePaths {
         for (RequirePathAlias pathAlias : paths.values()) {
             if (path.startsWith(pathAlias.alias)) {
                 VirtualFile directory = component.resolvePath(pathAlias.path);
-                if (directory.isDirectory()) {
+                if (null != directory && directory.isDirectory()) {
                     VirtualFile targetFile = FileUtils.findFileByPath(directory, path.replaceFirst(pathAlias.alias, ""));
                     if (null != targetFile) {
                         return targetFile;

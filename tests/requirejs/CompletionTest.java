@@ -231,7 +231,7 @@ public class CompletionTest extends RequirejsTestCase
         myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(2, 29));
         myFixture.complete(CompletionType.BASIC, 1);
         strings = myFixture.getLookupElementStrings();
-        assert strings == null;
+        assertNull(strings);
         element = myFixture.getFile().findElementAt(myFixture.getCaretOffset());
         assert element != null;
         assertEquals("'block'", element.getText());
