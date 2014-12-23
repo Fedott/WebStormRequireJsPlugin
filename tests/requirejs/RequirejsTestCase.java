@@ -34,6 +34,15 @@ public abstract class RequirejsTestCase extends CodeInsightFixtureTestCase {
         Settings.getInstance(getProject()).configFilePath = configPath;
     }
 
+    protected void setBaseUrlOverride(String baseUrl) {
+        Settings.getInstance(getProject()).overrideBaseUrl = true;
+        Settings.getInstance(getProject()).baseUrl = baseUrl;
+    }
+
+    protected void setBaseUrlOverrideDisable() {
+        Settings.getInstance(getProject()).overrideBaseUrl = false;
+    }
+
     protected void assertCompletionList(List<String> expected, List<String> actual) {
         assertCompletionList(expected, expected.size(), actual);
     }

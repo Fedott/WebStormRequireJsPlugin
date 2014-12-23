@@ -2,8 +2,6 @@ package requirejs.regression;
 
 
 import com.intellij.psi.PsiReference;
-import org.junit.Ignore;
-import org.junit.Test;
 import requirejs.RequirejsTestCase;
 
 public class Issue33Test extends RequirejsTestCase {
@@ -19,10 +17,11 @@ public class Issue33Test extends RequirejsTestCase {
         setConfigPath("js/require-config.js");
     }
 
-//    public void testReference() {
-//        PsiReference reference = getReferenceForHumanPosition(118, 36);
-//        assertReference(reference, "'designer/designer'", "designer.js");
-//    }
+    public void testReference() {
+        setBaseUrlOverride("/plugins/designer/scripts/lib");
+        PsiReference reference = getReferenceForHumanPosition(118, 36);
+        assertReference(reference, "'designer/designer'", "designer.js");
+    }
 
     public void testReferenceNotFound() {
         PsiReference reference = getReferenceForHumanPosition(119, 44);
