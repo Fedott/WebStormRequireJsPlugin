@@ -23,6 +23,7 @@
       Very thanks, gseguin (https://github.com/gseguin)
     - Added option to override requirejs' baseUrl <br />
     - Fixed resolve NullPointerException (Issue #33) <br />
+    - Added resolving magic module "require" <br />
     Version 0.20 <br />
     - Fix multi modules project bugs <br />
     - Added resolving magic AMD modules (exports, module) <br />
