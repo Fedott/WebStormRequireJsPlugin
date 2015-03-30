@@ -5,7 +5,7 @@ requirejs.config({
             onlyInNewModule: 'foo1.0.js'
         },
         'some/oldModule': {
-            'foo': 'foo1.0'
+            'foo': 'foo1.0',
             onlyInOldModule: 'foo1.3.js'
         },
         '*': {

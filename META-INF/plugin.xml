@@ -1,7 +1,7 @@
 <idea-plugin version="2" url="https://github.com/Fedott/WebStormRequireJsPlugin">
   <id>com.fedot.idea.requirejs</id>
   <name>Require.js plugin</name>
-  <version>0.21</version>
+  <version>0.22</version>
   <vendor email="fedotru@gmail.com" url="http://github.com/Fedott/">Vladimir Fedorov</vendor>
 
   <depends>com.intellij.modules.platform</depends>
@@ -19,6 +19,8 @@
       ]]></description>
 
   <change-notes><![CDATA[
+    Version 0.22 <br />
+    - Fixed work on Idea platform 141(WebStorm 10, Idea 14.1, PhpStorm 9, etc)
     Version 0.21 <br />
       Very thanks, gseguin (https://github.com/gseguin)
     - Added option to override requirejs' baseUrl <br />
@@ -83,7 +85,7 @@
   </change-notes>
 
   <!-- please see http://confluence.jetbrains.net/display/IDEADEV/Build+Number+Ranges for description -->
-  <idea-version since-build="131"/>
+  <idea-version since-build="141"/>
 
   <!-- please see http://confluence.jetbrains.net/display/IDEADEV/Plugin+Compatibility+with+IntelliJ+Platform+Products
        on how to target different products -->
