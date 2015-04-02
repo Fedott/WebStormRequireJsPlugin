@@ -3,14 +3,14 @@ package requirejs;
 import com.intellij.openapi.vfs.VirtualFile;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class RequirePaths {
     public RequirejsProjectComponent component;
 
-    public Map<String, RequirePathAlias> paths = new HashMap<String, RequirePathAlias>();
+    public Map<String, RequirePathAlias> paths = new ConcurrentHashMap<String, RequirePathAlias>();
 
     public RequirePaths(RequirejsProjectComponent requirejsProjectComponent) {
         component = requirejsProjectComponent;
