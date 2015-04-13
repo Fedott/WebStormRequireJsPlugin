@@ -639,32 +639,23 @@ public class RequirejsProjectComponent implements ProjectComponent {
                 .getOriginalFile()
                 .getVirtualFile();
 
-        String value = dequote(element.getText());
-        String valuePath = value;
-        if (valuePath.contains("!")) {
-            String[] exclamationMarkSplit = valuePath.split("!");
-            if (exclamationMarkSplit.length == 2) {
-                valuePath = exclamationMarkSplit[1];
-            } else {
-                valuePath = "";
-            }
-        }
+        Path path = new Path(element);
 
-        if (value.equals("exports") || value.equals("module") || value.equals("require")) {
+        if (path.isBuildInVariable()) {
             return element.getContainingFile();
         }
 
-        if (valuePath.startsWith("/")) {
-            targetFile = FileUtils.findFileByPath(getWebDir(elementFile), valuePath);
+        if (path.isAbsolutePath()) {
+            targetFile = FileUtils.findFileByPath(getWebDir(elementFile), path.getPath());
             if (null != targetFile) {
                 return PsiManager.getInstance(element.getProject()).findFile(targetFile);
             } else {
                 return null;
             }
-        } else if (valuePath.startsWith(".")) {
+        } else if (path.isRelativePath()) {
             PsiDirectory fileDirectory = element.getContainingFile().getContainingDirectory();
             if (null != fileDirectory) {
-                targetFile = FileUtils.findFileByPath(fileDirectory.getVirtualFile(), valuePath);
+                targetFile = FileUtils.findFileByPath(fileDirectory.getVirtualFile(), path.getPath());
                 if (null != targetFile) {
                     return PsiManager.getInstance(element.getProject()).findFile(targetFile);
                 }
@@ -673,14 +664,14 @@ public class RequirejsProjectComponent implements ProjectComponent {
 
         VirtualFile baseUrl = getBaseUrlPath(true);
         if (null != baseUrl) {
-            targetFile = FileUtils.findFileByPath(baseUrl, valuePath);
+            targetFile = FileUtils.findFileByPath(baseUrl, path.getPath());
 
             if (targetFile != null) {
                 return PsiManager.getInstance(element.getProject()).findFile(targetFile);
             }
         }
 
-        targetFile = requirePaths.resolve(valuePath);
+        targetFile = requirePaths.resolve(path.getPath());
         if (null != targetFile) {
             return PsiManager.getInstance(project).findFile(targetFile);
         }
@@ -690,7 +681,7 @@ public class RequirejsProjectComponent implements ProjectComponent {
                 ""
         ), ".js");
 
-        RequirePathAlias alias = requireMap.getAliasByModule(requireMapModule, valuePath);
+        RequirePathAlias alias = requireMap.getAliasByModule(requireMapModule, path.getPath());
         if (null != alias) {
             targetFile = FileUtils.findFileByPath(getWebDir(elementFile), alias.path);
             if (null != targetFile) {
@@ -701,11 +692,11 @@ public class RequirejsProjectComponent implements ProjectComponent {
         // check for packages
         String packageName;
         String moduleId = null;
-        if (valuePath.indexOf('/') == -1) {
-            packageName = valuePath;
+        if (path.getPath().indexOf('/') == -1) {
+            packageName = path.getPath();
         } else {
-            packageName = valuePath.substring(0, valuePath.indexOf('/'));
-            moduleId = valuePath.substring(valuePath.indexOf('/') + 1);
+            packageName = path.getPath().substring(0, path.getPath().indexOf('/'));
+            moduleId = path.getPath().substring(path.getPath().indexOf('/') + 1);
         }
         for (Package pkg : packageConfig.packages) {
             if (pkg.name.equals(packageName)) {
@@ -720,7 +711,7 @@ public class RequirejsProjectComponent implements ProjectComponent {
             }
         }
 
-        LOG.debug("Could not resolve reference for " + value);
+        LOG.debug("Could not resolve reference for " + path.getOriginValue());
         return null;
     }
 
