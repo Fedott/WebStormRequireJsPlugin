@@ -39,9 +39,9 @@ public class RequirejsProjectComponent implements ProjectComponent {
     protected String settingValidVersion;
     protected String settingVersionLastShowNotification;
 
-    private static final Logger LOG = Logger.getInstance("Requirejs-Plugin");
+    protected final Logger LOG = Logger.getInstance("Requirejs-Plugin");
 
-    private String requirejsBaseUrl;
+    protected String requirejsBaseUrl;
 
     protected RequirePaths requirePaths;
     protected RequireMap requireMap = new RequireMap();
@@ -97,7 +97,7 @@ public class RequirejsProjectComponent implements ProjectComponent {
         return "RequirejsProjectComponent";
     }
 
-    public static Logger getLogger() {
+    public Logger getLogger() {
         return LOG;
     }
 
@@ -633,86 +633,9 @@ public class RequirejsProjectComponent implements ProjectComponent {
     }
 
     public PsiElement requireResolve(PsiElement element) {
-        VirtualFile targetFile;
-        VirtualFile elementFile = element
-                .getContainingFile()
-                .getOriginalFile()
-                .getVirtualFile();
+        Path path = new Path(element, this);
 
-        Path path = new Path(element);
-
-        if (path.isBuildInVariable()) {
-            return element.getContainingFile();
-        }
-
-        if (path.isAbsolutePath()) {
-            targetFile = FileUtils.findFileByPath(getWebDir(elementFile), path.getPath());
-            if (null != targetFile) {
-                return PsiManager.getInstance(element.getProject()).findFile(targetFile);
-            } else {
-                return null;
-            }
-        } else if (path.isRelativePath()) {
-            PsiDirectory fileDirectory = element.getContainingFile().getContainingDirectory();
-            if (null != fileDirectory) {
-                targetFile = FileUtils.findFileByPath(fileDirectory.getVirtualFile(), path.getPath());
-                if (null != targetFile) {
-                    return PsiManager.getInstance(element.getProject()).findFile(targetFile);
-                }
-            }
-        }
-
-        VirtualFile baseUrl = getBaseUrlPath(true);
-        if (null != baseUrl) {
-            targetFile = FileUtils.findFileByPath(baseUrl, path.getPath());
-
-            if (targetFile != null) {
-                return PsiManager.getInstance(element.getProject()).findFile(targetFile);
-            }
-        }
-
-        targetFile = requirePaths.resolve(path.getPath());
-        if (null != targetFile) {
-            return PsiManager.getInstance(project).findFile(targetFile);
-        }
-
-        String requireMapModule = FileUtils.removeExt(element.getContainingFile().getVirtualFile().getPath().replace(
-                getWebDir(elementFile).getPath() + '/',
-                ""
-        ), ".js");
-
-        RequirePathAlias alias = requireMap.getAliasByModule(requireMapModule, path.getPath());
-        if (null != alias) {
-            targetFile = FileUtils.findFileByPath(getWebDir(elementFile), alias.path);
-            if (null != targetFile) {
-                return PsiManager.getInstance(project).findFile(targetFile);
-            }
-        }
-
-        // check for packages
-        String packageName;
-        String moduleId = null;
-        if (path.getPath().indexOf('/') == -1) {
-            packageName = path.getPath();
-        } else {
-            packageName = path.getPath().substring(0, path.getPath().indexOf('/'));
-            moduleId = path.getPath().substring(path.getPath().indexOf('/') + 1);
-        }
-        for (Package pkg : packageConfig.packages) {
-            if (pkg.name.equals(packageName)) {
-                if (moduleId == null) {
-                    moduleId = pkg.main;
-                }
-                targetFile = getBaseUrlPath(false)
-                        .findFileByRelativePath(pkg.location + '/' + moduleId + ".js");
-                if (null != targetFile) {
-                    return PsiManager.getInstance(element.getProject()).findFile(targetFile);
-                }
-            }
-        }
-
-        LOG.debug("Could not resolve reference for " + path.getOriginValue());
-        return null;
+        return path.resolve();
     }
 
     public List<String> getCompletion(PsiElement element) {
