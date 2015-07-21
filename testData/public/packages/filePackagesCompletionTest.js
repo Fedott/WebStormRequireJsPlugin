@@ -5,5 +5,5 @@ define(function(require) {
     var depend4 = require('packageDirN');
     var depend5 = require('packageDirNotExists/');
     var depend6 = require('location');
-    var depend7 = require('locationMainPackage/')
+    var depend7 = require('locationMainPackage/');
 })

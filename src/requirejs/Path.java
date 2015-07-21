@@ -1,5 +1,6 @@
 package requirejs;
 
+import com.intellij.openapi.paths.WebReference;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
@@ -51,7 +52,7 @@ public class Path {
     }
 
     public boolean isAbsolutePath() {
-        return path.startsWith("/");
+        return path.startsWith("/") && !path.startsWith("//");
     }
 
     public boolean isRelativePath() {
@@ -79,6 +80,11 @@ public class Path {
             }
         }
 
+        result = probeResolveUrl();
+        if (null != result) {
+            return result;
+        }
+
         result = probeResolveWithBaseUrl();
         if (null != result) {
             return result;
@@ -100,6 +106,16 @@ public class Path {
         }
 
         component.getLogger().debug("Could not resolve reference for " + this.getOriginValue());
+        return null;
+    }
+
+    @Nullable
+    protected PsiElement probeResolveUrl() {
+        if (this.getPath().startsWith("http") || this.getPath().startsWith("//")) {
+            UriReference ref = new UriReference(this.element);
+            return ref.resolve();
+        }
+
         return null;
     }
 
