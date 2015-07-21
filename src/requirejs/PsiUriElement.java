@@ -14,11 +14,17 @@ public class PsiUriElement extends FakePsiElement {
     }
 
     protected String getNormalizedUri() {
-        if (this.originalUri.startsWith("/")) {
-            return "http:".concat(this.originalUri);
+        String normalizedUri = this.originalUri;
+
+        if (normalizedUri.startsWith("/")) {
+            normalizedUri = "http:".concat(this.originalUri);
         }
 
-        return this.originalUri;
+        if (!normalizedUri.endsWith(".js")) {
+            normalizedUri = normalizedUri.concat(".js");
+        }
+
+        return normalizedUri;
     }
 
     @Override

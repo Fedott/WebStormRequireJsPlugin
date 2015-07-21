@@ -42,4 +42,24 @@ public class UriReferenceTest extends RequirejsTestCase {
         PsiReference reference = getReferenceForHumanPosition(5, 42);
         assertUrlReference(reference, "http://google.com/jquery.2.js");
     }
+
+    public void testReference5() {
+        PsiReference reference = getReferenceForHumanPosition(7, 42);
+        assertUrlReference(reference, "https://google.com/jquery.5.js");
+    }
+
+    public void testReference6() {
+        PsiReference reference = getReferenceForHumanPosition(8, 42);
+        assertUrlReference(reference, "http://google.com/jquery.6.js");
+    }
+
+    public void testReference7() {
+        PsiReference reference = getReferenceForHumanPosition(9, 42);
+        assertUrlReference(reference, "https://google.com/jquery.7.js");
+    }
+
+    public void testReference8() {
+        PsiReference reference = getReferenceForHumanPosition(10, 42);
+        assertUrlReference(reference, "http://google.com/jquery.8.js");
+    }
 }
