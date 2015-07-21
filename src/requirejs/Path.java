@@ -47,6 +47,10 @@ public class Path {
         return path;
     }
 
+    public void setPath(String path) {
+        this.path = path;
+    }
+
     public String getModule() {
         return module;
     }
@@ -112,8 +116,7 @@ public class Path {
     @Nullable
     protected PsiElement probeResolveUrl() {
         if (this.getPath().startsWith("http") || this.getPath().startsWith("//")) {
-            UriReference ref = new UriReference(this.element);
-            return ref.resolve();
+            return new PsiUriElement(this.element, this.getPath());
         }
 
         return null;
@@ -165,12 +168,7 @@ public class Path {
 
     @Nullable
     protected PsiElement probeResolveRequirePath() {
-        VirtualFile targetFile = component.requirePaths.resolve(this.getPath());
-        if (null != targetFile) {
-            return getPsiManager().findFile(targetFile);
-        }
-
-        return null;
+        return component.requirePaths.resolve(this);
     }
 
     @NotNull

@@ -14,12 +14,13 @@ public class UriReferenceTest extends RequirejsTestCase {
                 "public/config/configUriReferenceTest.js"
         );
         setWebPathSetting();
+        setConfigPath("config/configUriReferenceTest.js");
     }
 
     protected void assertUrlReference(PsiReference reference, String expectedUrl) {
         PsiElement referenceElement = reference.resolve();
         assertTrue(referenceElement instanceof PsiNamedElement);
-        assertEquals(((PsiNamedElement) referenceElement).getName(), expectedUrl);
+        assertEquals(expectedUrl, ((PsiNamedElement) referenceElement).getName());
     }
 
     public void testReference1() {
@@ -30,5 +31,15 @@ public class UriReferenceTest extends RequirejsTestCase {
     public void testReference2() {
         PsiReference reference = getReferenceForHumanPosition(3, 42);
         assertUrlReference(reference, "http://cdn.google.com/jquery.2.js");
+    }
+
+    public void testReference3() {
+        PsiReference reference = getReferenceForHumanPosition(4, 42);
+        assertUrlReference(reference, "https://google.com/jquery.js");
+    }
+
+    public void testReference4() {
+        PsiReference reference = getReferenceForHumanPosition(5, 42);
+        assertUrlReference(reference, "http://google.com/jquery.2.js");
     }
 }

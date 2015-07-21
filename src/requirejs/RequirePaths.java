@@ -1,6 +1,7 @@
 package requirejs;
 
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiElement;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,25 +29,20 @@ public class RequirePaths {
         paths.put(pathAlias.alias, pathAlias);
     }
 
-    public VirtualFile resolve(String path) {
-        RequirePathAlias fileAlias = paths.get(path);
+    public PsiElement resolve(Path path) {
+        RequirePathAlias fileAlias = paths.get(path.getPath());
         if (null != fileAlias) {
-            VirtualFile file = component.resolvePath(fileAlias.path);
-            if (null != file && !file.isDirectory()) {
-                return file;
-            } else {
-                return null;
-            }
+            path.setPath(fileAlias.path);
+            return path.resolve();
         }
 
+        PsiElement result;
         for (RequirePathAlias pathAlias : paths.values()) {
-            if (path.startsWith(pathAlias.alias)) {
-                VirtualFile directory = component.resolvePath(pathAlias.path);
-                if (null != directory && directory.isDirectory()) {
-                    VirtualFile targetFile = FileUtils.findFileByPath(directory, path.replaceFirst(pathAlias.alias, ""));
-                    if (null != targetFile) {
-                        return targetFile;
-                    }
+            if (path.getPath().startsWith(pathAlias.alias)) {
+                path.setPath(path.getPath().replaceFirst(pathAlias.alias, pathAlias.path));
+                result = path.resolve();
+                if (null != result) {
+                    return result;
                 }
             }
         }
