@@ -53,4 +53,25 @@ public class ModulesTest extends RequirejsTestCase {
         reference = getReferenceForHumanPosition(10, 22);
         assertReference(reference, "hbs!data/template", "template.hbs");
     }
+
+    public void testReferenceFont() {
+        PsiReference reference;
+
+        reference = getReferenceForHumanPosition(9, 22);
+        assertReference(reference, "font!google,families:[Tangerine,Cantarell]", "fileForTestModules.js");
+    }
+
+    public void testReferenceGoog1() {
+        PsiReference reference;
+
+        reference = getReferenceForHumanPosition(7, 22);
+        assertReference(reference, "goog!visualization,1,packages:[corechart,geochart]", "fileForTestModules.js");
+    }
+
+    public void testReferenceGoog2() {
+        PsiReference reference;
+
+        reference = getReferenceForHumanPosition(8, 22);
+        assertReference(reference, "goog!search,1", "fileForTestModules.js");
+    }
 }

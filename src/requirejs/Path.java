@@ -7,12 +7,20 @@ import com.intellij.psi.PsiManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class Path {
     protected PsiElement element;
     protected RequirejsProjectComponent component;
     protected String originValue;
     protected String path;
     protected String module = null;
+
+    public static final List<String> MODULES_SKIPPED_RESOLVING = Arrays.asList(
+            "goog",
+            "font"
+    );
 
     public Path(PsiElement element, RequirejsProjectComponent component) {
         this.element = element;
@@ -175,6 +183,7 @@ public class Path {
 
     @Nullable
     protected PsiElement probeResolveWithBaseUrl() {
+        // TODO: Rename function
         VirtualFile baseUrl = component.getBaseUrlPath(true);
         if (null != baseUrl) {
             VirtualFile targetFile = FileUtils.findFileByPath(baseUrl, this.getPath());
@@ -182,6 +191,10 @@ public class Path {
             if (null != targetFile) {
                 return getPsiManager().findFile(targetFile);
             } else if (null != this.getModule()) {
+                if (isSkippedModule()) {
+                    return this.getContainingFile();
+                }
+
                 String modulePath = this.getPath().concat(".").concat(this.getModule());
                 targetFile = FileUtils.findFileByPath(baseUrl, modulePath);
                 if (null != targetFile) {
@@ -191,6 +204,10 @@ public class Path {
         }
 
         return null;
+    }
+
+    protected boolean isSkippedModule() {
+        return MODULES_SKIPPED_RESOLVING.contains(this.getModule());
     }
 
     @Nullable
