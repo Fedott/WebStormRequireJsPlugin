@@ -6,6 +6,7 @@ import com.intellij.openapi.editor.LogicalPosition;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiNamedElement;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.impl.source.resolve.reference.impl.PsiMultiReference;
 import com.intellij.testFramework.fixtures.CodeInsightFixtureTestCase;
@@ -109,5 +110,11 @@ public abstract class RequirejsTestCase extends CodeInsightFixtureTestCase {
             assertInstanceOf(referenceElement, PsiFile.class);
             assertEquals(expectedFileName, ((PsiFile) referenceElement).getName());
         }
+    }
+
+    protected void assertUrlReference(PsiReference reference, String expectedUrl) {
+        PsiElement referenceElement = reference.resolve();
+        assertTrue(referenceElement instanceof PsiNamedElement);
+        assertEquals(expectedUrl, ((PsiNamedElement) referenceElement).getName());
     }
 }

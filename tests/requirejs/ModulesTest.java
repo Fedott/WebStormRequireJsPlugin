@@ -74,4 +74,11 @@ public class ModulesTest extends RequirejsTestCase {
         reference = getReferenceForHumanPosition(8, 22);
         assertReference(reference, "goog!search,1", "fileForTestModules.js");
     }
+
+    public void testReferenceAsync() {
+        PsiReference reference;
+
+        reference = getReferenceForHumanPosition(6, 22);
+        assertUrlReference(reference, "http://maps.google.com/maps/api/js?sensor=false");
+    }
 }

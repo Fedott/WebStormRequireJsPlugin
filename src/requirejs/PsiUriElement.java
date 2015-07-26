@@ -21,7 +21,9 @@ public class PsiUriElement extends FakePsiElement {
         }
 
         if (!normalizedUri.endsWith(".js")) {
-            normalizedUri = normalizedUri.concat(".js");
+            if (!normalizedUri.contains("?")) {
+                normalizedUri = normalizedUri.concat(".js");
+            }
         }
 
         return normalizedUri;

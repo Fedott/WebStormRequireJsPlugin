@@ -17,12 +17,6 @@ public class UriReferenceTest extends RequirejsTestCase {
         setConfigPath("config/configUriReferenceTest.js");
     }
 
-    protected void assertUrlReference(PsiReference reference, String expectedUrl) {
-        PsiElement referenceElement = reference.resolve();
-        assertTrue(referenceElement instanceof PsiNamedElement);
-        assertEquals(expectedUrl, ((PsiNamedElement) referenceElement).getName());
-    }
-
     public void testReference1() {
         PsiReference reference = getReferenceForHumanPosition(2, 42);
         assertUrlReference(reference, "https://cdn.google.com/jquery.js");
