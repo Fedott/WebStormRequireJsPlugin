@@ -23,6 +23,8 @@ public class PackageTest extends RequirejsTestCase {
                 "public/sub/packages/locationMainPackage/otherFile.js",
                 "public/sub/packages/locationPackage/main.js",
                 "public/sub/packages/locationPackage/otherFile.js",
+                "public/packages/packageWithSlash/package/location/main.js",
+                "public/packages/packageWithSlash/package/location/otherFile.js",
                 "public/packages/configWithPackages.js"
         );
         setWebPathSetting();
@@ -41,8 +43,11 @@ public class PackageTest extends RequirejsTestCase {
                 "packageWithLocationAndMain",
                 "packageWithMainNotExists/otherFile",
                 "locationMainPackage",
-                "locationPackage"
-        ), 14, strings);
+                "locationPackage",
+                "packageWithSlash/package/location",
+                "packageWithSlash/package/location/main",
+                "packageWithSlash/package/location/otherFile"
+        ), 17, strings);
     }
 
     public void testCompletion2() {
@@ -50,7 +55,8 @@ public class PackageTest extends RequirejsTestCase {
         assertCompletionList(Arrays.asList(
                 "packageSimple",
                 "packageSimple/main",
-                "packageSimple/otherFile"
+                "packageSimple/otherFile",
+                "packageWithSlash/package/location"
         ), strings);
     }
 
@@ -79,6 +85,7 @@ public class PackageTest extends RequirejsTestCase {
                 "locationPackage/otherFile",
                 "locationMainPackage",
                 "locationMainPackage/otherFile",
+                "packageWithSlash/package/location",
                 "packageWithLocation",
                 "packageWithLocationAndMain"
         ), strings);
@@ -187,5 +194,32 @@ public class PackageTest extends RequirejsTestCase {
 
         reference = getReferenceForHumanPosition(12, 35);
         assertReference(reference, "'locationPackage'", "main.js");
+    }
+
+    public void testReference12()
+    {
+        myFixture.configureByFile("public/packages/filePackagesResolveTest.js");
+        PsiReference reference;
+
+        reference = getReferenceForHumanPosition(13, 35);
+        assertReference(reference, "'packageWithSlash/package/location'", "main.js");
+    }
+
+    public void testReference13()
+    {
+        myFixture.configureByFile("public/packages/filePackagesResolveTest.js");
+        PsiReference reference;
+
+        reference = getReferenceForHumanPosition(14, 35);
+        assertReference(reference, "'packageWithSlash/package/location/otherFile'", "otherFile.js");
+    }
+
+    public void testReference14()
+    {
+        myFixture.configureByFile("public/packages/filePackagesResolveTest.js");
+        PsiReference reference;
+
+        reference = getReferenceForHumanPosition(15, 35);
+        assertReference(reference, "'packageWithSlash/package/location/notFound'", null);
     }
 }

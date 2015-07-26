@@ -124,21 +124,18 @@ public class Path {
 
     @Nullable
     protected PsiElement probeResolvePackage() {
-        String packageName;
-        String moduleId = null;
-        if (this.getPath().indexOf('/') == -1) {
-            packageName = this.getPath();
-        } else {
-            packageName = this.getPath().substring(0, this.getPath().indexOf('/'));
-            moduleId = this.getPath().substring(this.getPath().indexOf('/') + 1);
-        }
         for (Package pkg : component.packageConfig.packages) {
-            if (pkg.name.equals(packageName)) {
-                if (moduleId == null) {
-                    moduleId = pkg.main;
+            if (this.getPath().startsWith(pkg.name)) {
+                VirtualFile targetFile;
+                String moduleFilePath;
+                if (this.getPath().equals(pkg.name)) {
+                    moduleFilePath = pkg.main;
+                } else {
+                    moduleFilePath = this.getPath().replace(pkg.name, "");
                 }
-                VirtualFile targetFile = component.getBaseUrlPath(false)
-                        .findFileByRelativePath(pkg.location + '/' + moduleId + ".js");
+
+                targetFile = component.getBaseUrlPath(false)
+                        .findFileByRelativePath(pkg.location + "/" + moduleFilePath + ".js");
                 if (null != targetFile) {
                     return getPsiManager().findFile(targetFile);
                 }

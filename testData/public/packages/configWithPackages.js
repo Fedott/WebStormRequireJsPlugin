@@ -30,6 +30,7 @@ require({
         {
             name: "locationPackage",
             location: "../sub/packages/locationPackage"
-        }
+        },
+        'packageWithSlash/package/location'
     ]
 })

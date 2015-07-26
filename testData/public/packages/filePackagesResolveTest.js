@@ -10,4 +10,7 @@ define(function(require) {
     var depend9 = require('packageWithLocation');
     var depend10 = require('locationMainPackage');
     var depend11 = require('locationPackage');
+    var depend12 = require('packageWithSlash/package/location');
+    var depend13 = require('packageWithSlash/package/location/otherFile');
+    var depend14 = require('packageWithSlash/package/location/notFound');
 })
