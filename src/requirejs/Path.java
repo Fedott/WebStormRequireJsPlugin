@@ -1,5 +1,7 @@
 package requirejs;
 
+import com.intellij.javascript.nodejs.NodeCoreModulesManager;
+import com.intellij.javascript.nodejs.NodeModuleSearchUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
@@ -97,7 +99,7 @@ public class Path {
             return result;
         }
 
-        result = probeResolveWithBaseUrl();
+        result = probeResolveBasic();
         if (null != result) {
             return result;
         }
@@ -182,8 +184,7 @@ public class Path {
     }
 
     @Nullable
-    protected PsiElement probeResolveWithBaseUrl() {
-        // TODO: Rename function
+    protected PsiElement probeResolveBasic() {
         VirtualFile baseUrl = component.getBaseUrlPath(true);
         if (null != baseUrl) {
             VirtualFile targetFile = FileUtils.findFileByPath(baseUrl, this.getPath());
@@ -192,6 +193,10 @@ public class Path {
                 return getPsiManager().findFile(targetFile);
             } else if (null != this.getModule()) {
                 if (isSkippedModule()) {
+                    return this.getContainingFile();
+                }
+
+                if (NodeCoreModulesManager.isCoreModuleName(this.getPath())) {
                     return this.getContainingFile();
                 }
 
