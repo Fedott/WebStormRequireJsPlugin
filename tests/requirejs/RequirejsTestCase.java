@@ -5,6 +5,7 @@ import com.intellij.lang.javascript.psi.JSFile;
 import com.intellij.openapi.editor.LogicalPosition;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.impl.source.resolve.reference.impl.PsiMultiReference;
 import com.intellij.testFramework.fixtures.CodeInsightFixtureTestCase;
@@ -104,9 +105,9 @@ public abstract class RequirejsTestCase extends CodeInsightFixtureTestCase {
         if (null == expectedFileName) {
             assertNull(referenceElement);
         } else {
-            assertNotNull(referenceElement);
-            assertInstanceOf(referenceElement, JSFile.class);
-            assertEquals(expectedFileName, ((JSFile) referenceElement).getName());
+            assertNotNull("Not resolved", referenceElement);
+            assertInstanceOf(referenceElement, PsiFile.class);
+            assertEquals(expectedFileName, ((PsiFile) referenceElement).getName());
         }
     }
 }

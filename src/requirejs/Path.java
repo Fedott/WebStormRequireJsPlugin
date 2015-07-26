@@ -1,6 +1,5 @@
 package requirejs;
 
-import com.intellij.openapi.paths.WebReference;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
@@ -51,6 +50,7 @@ public class Path {
         this.path = path;
     }
 
+    @Nullable
     public String getModule() {
         return module;
     }
@@ -182,8 +182,14 @@ public class Path {
         if (null != baseUrl) {
             VirtualFile targetFile = FileUtils.findFileByPath(baseUrl, this.getPath());
 
-            if (targetFile != null) {
+            if (null != targetFile) {
                 return getPsiManager().findFile(targetFile);
+            } else if (null != this.getModule()) {
+                String modulePath = this.getPath().concat(".").concat(this.getModule());
+                targetFile = FileUtils.findFileByPath(baseUrl, modulePath);
+                if (null != targetFile) {
+                    return getPsiManager().findFile(targetFile);
+                }
             }
         }
 
