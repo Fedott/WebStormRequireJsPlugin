@@ -28,6 +28,7 @@ import com.intellij.psi.impl.source.tree.TreeElement;
 import com.intellij.psi.impl.source.xml.XmlFileImpl;
 import com.intellij.psi.tree.TokenSet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import requirejs.settings.Settings;
 
 import java.util.ArrayList;
@@ -575,10 +576,25 @@ public class RequirejsProjectComponent implements ProjectComponent {
         parsePackageObject(next, p);
     }
 
+    @Nullable
     private static String getJSPropertyLiteralValue(TreeElement jsProperty) {
-        return dequote(jsProperty
-                .findChildByType(JSElementTypes.LITERAL_EXPRESSION)
-                .getText());
+        TokenSet availablePropertyValueTokenSet = TokenSet.create(
+                JSElementTypes.LITERAL_EXPRESSION,
+                JSElementTypes.BINARY_EXPRESSION,
+                JSElementTypes.CONDITIONAL_EXPRESSION);
+        TreeElement jsPropertyValue = (TreeElement) jsProperty.findChildByType(availablePropertyValueTokenSet);
+        if (null == jsPropertyValue) {
+            return null;
+        }
+
+        if (jsPropertyValue.getElementType() != JSElementTypes.LITERAL_EXPRESSION) {
+            jsPropertyValue = (TreeElement) jsPropertyValue.findChildByType(JSElementTypes.LITERAL_EXPRESSION);
+            if (null == jsPropertyValue) {
+                return null;
+            }
+        }
+
+        return dequote(jsPropertyValue.getText());
     }
 
     protected void setBaseUrl(String baseUrl) {
