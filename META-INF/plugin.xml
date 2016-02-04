@@ -1,11 +1,11 @@
 <idea-plugin version="2" url="https://github.com/Fedott/WebStormRequireJsPlugin">
   <id>com.fedot.idea.requirejs</id>
   <name>Require.js plugin</name>
-  <version>0.24</version>
+  <version>0.25</version>
   <vendor email="fedotru@gmail.com" url="http://github.com/Fedott/">Vladimir Fedorov</vendor>
 
-  <depends>com.intellij.modules.platform</depends>
   <depends>JavaScript</depends>
+  <depends>com.intellij.modules.platform</depends>
 
     <description><![CDATA[
       Require js plugin<br />
@@ -19,6 +19,8 @@
       ]]></description>
 
   <change-notes><![CDATA[
+    Version 0.25 <br />
+    - Fixed errors in new version IDEA platform <br />
     Version 0.24 <br />
     - Added resolving urls <br />
     - Added resolving plugins (example hbs) <br />
@@ -94,7 +96,7 @@
   </change-notes>
 
   <!-- please see http://confluence.jetbrains.net/display/IDEADEV/Build+Number+Ranges for description -->
-  <idea-version since-build="141"/>
+  <idea-version since-build="143"/>
 
   <!-- please see http://confluence.jetbrains.net/display/IDEADEV/Plugin+Compatibility+with+IntelliJ+Platform+Products
        on how to target different products -->

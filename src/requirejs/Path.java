@@ -1,7 +1,6 @@
 package requirejs;
 
-import com.intellij.javascript.nodejs.NodeCoreModulesManager;
-import com.intellij.javascript.nodejs.NodeModuleSearchUtil;
+import com.intellij.javascript.nodejs.library.NodeJsCoreModulesCatalog;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
@@ -196,7 +195,7 @@ public class Path {
                     return this.getContainingFile();
                 }
 
-                if (NodeCoreModulesManager.isCoreModuleName(this.getPath())) {
+                if (NodeJsCoreModulesCatalog.INSTANCE.isPublicCoreModule(this.getPath())) {
                     return this.getContainingFile();
                 }
 
